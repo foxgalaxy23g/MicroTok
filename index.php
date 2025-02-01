@@ -131,6 +131,7 @@ if (isset($_COOKIE['auth_token'])) {
                     <button type="submit">Login</button>
                 </form>
             </div>
+            <a href="translate-activate.php" style="color :#ff00ff; text-decoration: none;">Activate translation by Google</a>
         </div>
 
         <div class="right-panel">

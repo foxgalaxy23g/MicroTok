@@ -1,4 +1,4 @@
-.skiptranslate, #google_translate_element, .goog-te-banner-frame, .goog-te-gadget {
+.skiptranslate, .goog-te-banner-frame, .goog-te-gadget {
     display: none !important;
     visibility: hidden !important;
     height: 0 !important;

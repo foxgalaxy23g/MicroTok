@@ -1,0 +1,115 @@
+/* Основные стили для светлой и тёмной темы */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+}
+
+/* Заголовки */
+h1, h2 {
+    color: #7f3fbf; /* Фиолетовый текст */
+}
+
+h1 {
+    text-align: center;
+}
+
+a {
+    color: #7f3fbf;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Контейнер для форм */
+form {
+    max-width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s;
+}
+
+@media (prefers-color-scheme: dark) {
+    form {
+        background-color: #1e1e1e;
+    }
+}
+
+/* Поля ввода и файлы */
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+input[type="text"], input[type="password"], input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #333;
+    font-size: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+    input[type="text"], input[type="password"], input[type="file"] {
+        background-color: #333;
+        color: #e0e0e0;
+        border-color: #444;
+    }
+}
+
+/* Кнопки */
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #7f3fbf;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #6a2fb3;
+}
+
+button:disabled {
+    background-color: #ddd;
+    cursor: not-allowed;
+}
+
+/* Стили для удаления аккаунта */
+button[type="submit"][name="delete_account"] {
+    background-color: #e74c3c;
+    margin-top: 20px;
+}
+
+button[type="submit"][name="delete_account"]:hover {
+    background-color: #c0392b;
+}
+
+/* Изображения аватаров */
+img {
+    border-radius: 50%;
+    max-width: 150px;
+    margin-top: 10px;
+}

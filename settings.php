@@ -104,17 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Удаление аккаунта
     if (isset($_POST['delete_account'])) {
-        $delete_query = "DELETE FROM users WHERE id = ?";
-        $stmt = $conn->prepare($delete_query);
-        $stmt->bind_param('i', $user_id);
-        if ($stmt->execute()) {
-            echo "Аккаунт удален.<br>";
-            header("Location: exit.php");
-            exit();
-        } else {
-            echo "Ошибка удаления аккаунта.<br>";
-        }
-        $stmt->close();
+        header("Location: warning-delete.php");
     }
 }
 ?>
@@ -123,46 +113,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Настройки</title>
+    <title>Settings</title>
     <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="elements/css/settings.css">
 </head>
 <body>
     <?php include("header.php"); ?>
-    <h1>Настройки аккаунта</h1>
+    <h1>Settings</h1>
     
     <form method="post" enctype="multipart/form-data">
         <div>
-            <label for="username">Имя пользователя:</label>
+            <label for="username">Username:</label>
             <input type="text" id="username" name="username" value="<?= htmlspecialchars($user['username'] ?? '') ?>" required>
         </div>
 
         <div>
-            <label for="password">Новый пароль:</label>
+            <label for="password">New password:</label>
             <input type="password" id="password" name="password">
         </div>
 
         <div>
-            <label for="avatar">Выберите аватар:</label>
+            <label for="avatar">Choose your avatar:</label>
             <input type="file" id="avatar" name="avatar" accept="image/*">
         </div>
 
         <div>
-            <button type="submit" name="update">Обновить</button>
+            <button type="submit" name="update">Update</button>
         </div>
+    </form>
+    <form>
+        <h2>Translation and language</h2>
+        <a href="translate-activate.php">translation by Google</a>
     </form>
 
     <form method="post">
         <div>
-            <button type="submit" name="delete_account">Удалить аккаунт</button>
+            <button type="submit" name="delete_account">Delete your account</button>
         </div>
     </form>
-
-    <h2>Ваш аватар</h2>
-    <?php if (!empty($user['avatar'])): ?>
-        <img src="<?= htmlspecialchars($user['avatar']) ?>" alt="Аватар" style="max-width: 150px;">
-    <?php else: ?>
-        <p>Аватар не установлен.</p>
-    <?php endif; ?>
-
 </body>
 </html>

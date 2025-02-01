@@ -6,6 +6,7 @@
     <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
+<script src="elements/js/translate.js"></script>
 <?php
 $gtranslator = '1'; // переводчик
 
