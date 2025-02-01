@@ -1,5 +1,6 @@
 <?php
 include("elements/php/db.php");
+include("elements/php/closed.php");
 
 function authenticate($conn) {
     if (!isset($_COOKIE['auth_token'])) {
@@ -121,9 +122,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
 </head>
 <body>
     <div class="header-container">
-        <?php include("header.php"); ?>
+        <?php 
+        include("header.php"); 
+        include("elements/php/closed.php");
+        ?>
     </div>
-
+    <noscript>
+        <meta http-equiv="refresh" content="0; url=/javascript.html">
+    </noscript>
     <div class="sidebar">
         <a href="make.php"><i></i></a> 
         <a href="make.php"><i>🎥</i>Upload video</a>
@@ -133,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
 
     <div class="content">
         <h1>^</h1>
-        <h1>Video Upload</h1>
+        <h1>Upload Video</h1>
         <form method="post" enctype="multipart/form-data">
             <label>Select video (MP4, max 50 MB):</label>
             <input type="file" name="video" accept="video/mp4" required><br>

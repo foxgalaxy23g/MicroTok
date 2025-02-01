@@ -1,15 +1,20 @@
-body {
+html, body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+* {
+    box-sizing: border-box;
 }
 
-/* Стили для светлой темы */
 .container {
+    margin: 0;
+    padding: 0;
     display: flex;
-    flex: 1;
+    justify-content: space-between;
+    align-items: center;
+    height: 100vh; /* Контейнер теперь занимает 100% высоты экрана */
 }
 
 .left-panel {
@@ -19,6 +24,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    height: 100vh;
 }
 
 .form-container {
@@ -71,6 +77,7 @@ body {
     align-items: center;
     text-align: center;
     padding: 40px;
+    height: 100vh;
 }
 
 .right-panel img {
@@ -151,3 +158,97 @@ body {
         font-size: 14px;
     }
 }
+
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    margin: 0;
+    padding: 0;
+}
+
+#logo {
+    width: 150px;
+    height: auto;
+    animation: pulse 1.5s infinite ease-in-out;
+    filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.5)) 
+            drop-shadow(0 0 20px rgba(255, 165, 0, 0.5)) 
+            drop-shadow(0 0 30px rgba(255, 255, 0, 0.5)) 
+            drop-shadow(0 0 40px rgba(0, 255, 0, 0.5)) 
+            drop-shadow(0 0 50px rgba(0, 255, 255, 0.5)) 
+            drop-shadow(0 0 60px rgba(0, 0, 255, 0.5)) 
+            drop-shadow(0 0 70px rgba(75, 0, 130, 0.5)) 
+            drop-shadow(0 0 80px rgba(148, 0, 211, 0.5)); 
+    animation: neonGlow 1.5s infinite alternate;
+}
+
+@keyframes neonGlow {
+    0% {
+        filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.5)) 
+                drop-shadow(0 0 20px rgba(255, 165, 0, 0.5)) 
+                drop-shadow(0 0 30px rgba(255, 255, 0, 0.5)) 
+                drop-shadow(0 0 40px rgba(0, 255, 0, 0.5)) 
+                drop-shadow(0 0 50px rgba(0, 255, 255, 0.5)) 
+                drop-shadow(0 0 60px rgba(0, 0, 255, 0.5)) 
+                drop-shadow(0 0 70px rgba(75, 0, 130, 0.5)) 
+                drop-shadow(0 0 80px rgba(148, 0, 211, 0.5));
+    }
+    100% {
+        filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.7)) 
+                drop-shadow(0 0 30px rgba(255, 165, 0, 0.7)) 
+                drop-shadow(0 0 40px rgba(255, 255, 0, 0.7)) 
+                drop-shadow(0 0 50px rgba(0, 255, 0, 0.7)) 
+                drop-shadow(0 0 60px rgba(0, 255, 255, 0.7)) 
+                drop-shadow(0 0 70px rgba(0, 0, 255, 0.7)) 
+                drop-shadow(0 0 80px rgba(75, 0, 130, 0.7)) 
+                drop-shadow(0 0 90px rgba(148, 0, 211, 0.7));
+    }
+}
+
+
+#by-text {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #333;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+#main-content {
+    opacity: 0; /* Начальная прозрачность */
+    transition: opacity 2s ease-in-out; /* Плавное изменение прозрачности */
+}
+
+#main-content.show {
+    opacity: 1; /* Полная непрозрачность */
+}
+
+/* Основной стиль для плавного появления */
+.fade-in {
+    opacity: 0; /* Изначально элемент невидим */
+    transition: opacity 1s ease-in-out; /* Плавный переход */
+  }
+  
+  /* Когда элемент будет видим, применяем opacity: 1 */
+  .fade-in.visible {
+    opacity: 1;
+  }
+  

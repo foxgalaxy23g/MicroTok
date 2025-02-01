@@ -9,7 +9,7 @@
 
     </style>
     <link rel="stylesheet" href="elements/css/header.css">
-    <link rel="icon" href="elements/embeded/logo.png" type="image/x-icon"/>
+    <link rel="icon" href="elements/embeded/me/logo.png" type="image/x-icon"/>
 </head>
 <body>
     <?php 
@@ -22,7 +22,7 @@
     </noscript>
     <header class="header">
         <a href="/" class="logo">
-            <img src="elements/embeded/logo.png" alt="Логотип">
+            <img src="elements/embeded/me/logo-header.png" alt="Логотип">
             <a2 style="color:rgb(98, 0, 255);"><?php echo($project_name); ?></a2>
         </a>
         <div class="buttons">

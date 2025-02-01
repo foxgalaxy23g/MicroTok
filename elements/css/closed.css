@@ -1,0 +1,70 @@
+/* Основные переменные для цветов */
+:root {
+    --background-light: #fff;
+    --background-dark: #121212;
+    --text-light: #555;
+    --text-dark: #eee;
+    --header-light: #FF6347;
+    --header-dark: #FF6347;
+    --link-light: #1E90FF;
+    --link-dark: #1E90FF;
+}
+/* Общие стили */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 50px;
+    background-color: var(--background-light);
+    color: var(--text-light);
+    transition: background-color 0.3s, color 0.3s;
+    min-height: 100vh;
+    position: relative;
+}
+
+h1 {
+    color: var(--header-light);
+}
+p {
+    font-size: 18px;
+    color: var(--text-light);
+}
+/* Контакты, зафиксированные внизу экрана */
+.contacts {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--background-light);
+    padding: 15px 0;
+    text-align: center;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+.contact-link {
+    display: inline-block;
+    margin: 10px 15px;
+}
+.contact-link img {
+    width: 40px; /* Размер иконок */
+    height: 40px;
+    transition: opacity 0.3s;
+}
+.contact-link img:hover {
+    opacity: 0.7; /* Эффект при наведении */
+}
+/* Поддержка тёмной темы */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: var(--background-dark);
+        color: var(--text-dark);
+    }
+    h1 {
+        color: var(--header-dark);
+    }
+    .contacts {
+        background-color: var(--background-dark);
+    }
+    .contact-link img {
+        filter: invert(1); /* Инвертирует цвета изображений в тёмной теме */
+    }
+}

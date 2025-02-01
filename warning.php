@@ -1,6 +1,7 @@
 <?php 
 include("elements/php/translator.php"); 
 include("elements/php/cursor.php");
+include("elements/php/closed.php");
 ?>
 <!DOCTYPE html>
 <html lang="en">

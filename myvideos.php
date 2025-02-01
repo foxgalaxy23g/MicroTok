@@ -1,5 +1,6 @@
 <?php
 include("elements/php/db.php");
+include("elements/php/closed.php");
 
 function authenticate($conn) {
     if (!isset($_COOKIE['auth_token'])) {
@@ -129,9 +130,13 @@ $result = $stmt->get_result();
 </head>
 <body>
     <div class="header-container">
-        <?php include("header.php"); ?>
+        <?php
+            include("header.php");
+        ?>
     </div>
-
+    <noscript>
+        <meta http-equiv="refresh" content="0; url=/javascript.html">
+    </noscript>
     <div class="sidebar">
         <a href="make.php"><i></i></a> 
         <a href="make.php"><i>🎥</i>Upload video</a> 

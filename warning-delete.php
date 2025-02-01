@@ -2,6 +2,7 @@
 include("elements/php/translator.php"); 
 include("elements/php/cursor.php");
 include("elements/php/db.php");
+include("elements/php/closed.php");
 ?>
 
 <?php

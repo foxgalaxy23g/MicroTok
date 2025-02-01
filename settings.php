@@ -1,5 +1,6 @@
 <?php
 require_once 'elements/php/db.php'; 
+include("elements/php/closed.php");
 
 function authenticate($conn) {
     if (!isset($_COOKIE['auth_token'])) {
@@ -118,7 +119,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="elements/css/settings.css">
 </head>
 <body>
-    <?php include("header.php"); ?>
+    <?php 
+        include("header.php"); 
+    ?>
     <h1>Settings</h1>
     
     <form method="post" enctype="multipart/form-data">

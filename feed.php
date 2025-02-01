@@ -1,5 +1,6 @@
 <?php
 include("elements/php/db.php");
+include("elements/php/closed.php");
 
 function authenticate($conn) {
     if (!isset($_COOKIE['auth_token'])) {
@@ -174,7 +175,13 @@ if ($result->num_rows > 0) {
 
 </head>
 <body>
-    <?php include("header.php") ?>
+    
+    <?php 
+    include("header.php") 
+    ?>
+    <noscript>
+        <meta http-equiv="refresh" content="0; url=/javascript.html">
+    </noscript>
     <div class="commenta">
         <div class="video-container">
             <video id="video" src="<?php echo htmlspecialchars($video['path']); ?>" autoplay loop muted playsinline></video>

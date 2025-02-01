@@ -212,3 +212,15 @@ video {
         height: 100px;
     }
 }
+
+/* Основной стиль для плавного появления */
+.fade-in {
+    opacity: 0; /* Изначально элемент невидим */
+    transition: opacity 1s ease-in-out; /* Плавный переход */
+  }
+  
+  /* Когда элемент будет видим, применяем opacity: 1 */
+  .fade-in.visible {
+    opacity: 1;
+  }
+  
