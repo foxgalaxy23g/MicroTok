@@ -10,3 +10,8 @@ if ($conn->connect_error) {
     die("Ошибка подключения к базе данных: " . $conn->connect_error);
 }
 ?>
+
+<?php
+//other thinks
+$project_name = "MicroTok";
+?>

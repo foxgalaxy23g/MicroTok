@@ -1,6 +1,8 @@
 <?php
 include("db.php");
 
+$project_decsi = "Social media maded by no name furry just for fun";
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_username'], $_POST['register_password'])) {
     $username = $_POST['register_username'];
     $password = password_hash($_POST['register_password'], PASSWORD_BCRYPT);
@@ -86,124 +88,13 @@ if (isset($_COOKIE['auth_token'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration and Login</title>
+    <title>Welcome to <?php echo htmlentities($project_name); ?></title>
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
 
-        .container {
-            display: flex;
-            flex: 1;
-        }
-
-        .left-panel {
-            width: 50%;
-            padding: 40px;
-            background-color: #f9f9f9;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .form-container {
-            margin-bottom: 40px;
-        }
-
-        .form-container h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
-        .form-container form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-container label {
-            margin-bottom: 8px;
-        }
-
-        .form-container input {
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .form-container button {
-            padding: 10px;
-            background-color: rgb(98, 0, 255);
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .form-container button:hover {
-            background-color:rgb(98, 0, 179);
-        }
-
-        .right-panel {
-            width: 50%;
-            background-color:rgb(98, 0, 255);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .right-panel img {
-            max-width: 100%;
-            height: auto;
-            margin-bottom: 20px;
-        }
-
-        .right-panel h2 {
-            font-size: 28px;
-            margin-bottom: 20px;
-        }
-
-        .right-panel p {
-            font-size: 18px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-
-            .left-panel, .right-panel {
-                width: 100%;
-                padding: 20px;
-            }
-
-            .right-panel {
-                display: none;
-            }
-
-            .form-container {
-                margin-bottom: 20px;
-            }
-
-            .form-container h1 {
-                font-size: 20px;
-            }
-
-            .form-container button {
-                font-size: 14px;
-            }
-        }
     </style>
+    <link rel="stylesheet" href="elements/css/index.css">
+    <link rel="icon" href="elements/embeded/logo.png" type="image/x-icon"/>
+    <meta name="description" content="<?php echo($project_decsi); ?>">
 </head>
 <body>
     <noscript>
@@ -242,10 +133,11 @@ if (isset($_COOKIE['auth_token'])) {
         </div>
 
         <div class="right-panel">
-            <img src="embeded/ad.png" alt="Placeholder Image">
-            <h2>Welcome to Microtok!</h2>
-            <p>Social media maded by no name furry just for fun</p>
+            <img src="elements/embeded/ad.png" alt="Placeholder Image">
+            <h2>Welcome to <?php echo htmlentities($project_name); ?>!</h2>
+            <p><?php echo htmlentities($project_decsi); ?></p>
         </div>
     </div>
+    <script src="elements/js/safe.js"></script>
 </body>
 </html>

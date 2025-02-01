@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Янв 29 2025 г., 21:24
+-- Время создания: Фев 01 2025 г., 14:08
 -- Версия сервера: 8.0.30
 -- Версия PHP: 7.2.34
 
@@ -43,8 +43,15 @@ CREATE TABLE `users` (
   `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `token` varchar(64) DEFAULT NULL,
-  `avatar` varchar(255) DEFAULT NULL
+  `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'uploads/avatars/classic-avava.png'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Дамп данных таблицы `users`
+--
+
+INSERT INTO `users` (`id`, `username`, `password`, `token`, `avatar`) VALUES
+(1, 'Admin', '$2y$10$xCXdzZu6nz3liGdCww1zIOM0IfbWoJNKOd2zFR1e7X3VM2Ujx1VA6', '37ccccfec4957b00f1b224d16c1bdcf7', 'uploads/avatars/9b72e7992ab416241f76140a96df0774.jpg');
 
 -- --------------------------------------------------------
 
@@ -60,6 +67,13 @@ CREATE TABLE `videos` (
   `upload_time` datetime NOT NULL,
   `cover_image_path` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Дамп данных таблицы `videos`
+--
+
+INSERT INTO `videos` (`id`, `user_id`, `path`, `description`, `upload_time`, `cover_image_path`) VALUES
+(1, 1, 'uploads/videos/679dfb313fc35.mp4', 'First Video on this Platform', '2025-02-01 13:45:05', 'uploads/covers/679dfb31402fe.png');
 
 -- --------------------------------------------------------
 
@@ -115,19 +129,19 @@ ALTER TABLE `video_likes`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблицы `videos`
 --
 ALTER TABLE `videos`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблицы `video_likes`
 --
 ALTER TABLE `video_likes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
