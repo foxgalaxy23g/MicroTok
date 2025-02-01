@@ -150,9 +150,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <form method="post">
+        <h2>Actions with my account</h2>
         <div>
             <button type="submit" name="delete_account">Delete your account</button>
         </div>
     </form>
+    <form method="post">
+        <h2>Our contacts</h2>
+        <div style="display: flex;">
+            <div>
+                <a href="<?php echo($x_admin) ?>"><img class="hawaii" src="elements/embeded/notme/x.png" alt="X"></a>
+                <p style="text-align: center;">X</p>
+            </div>
+            <div>
+                <a href="<?php echo($tg_admin) ?>"><img  class="hawaii"src="elements/embeded/notme/tg.png" alt="tg"></a>
+                <p style="text-align: center;">Telegram</p>
+            </div>
+            <div>
+                <a href="<?php echo($yt_admin) ?>"><img  class="hawaii"src="elements/embeded/notme/yt.png" alt="yt"></a>
+                <p style="text-align: center;">YouTube</p>
+            </div>
+            <div>
+                <a href="<?php echo($gh_admin) ?>"><img  class="hawaii"src="elements/embeded/notme/gh.png" alt="gh"></a>
+                <p style="text-align: center;">GitHub</p>
+            </div>
+        </div>
+    </form>
+    <h2>_</h2>
 </body>
 </html>

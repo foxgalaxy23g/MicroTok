@@ -34,6 +34,12 @@ if($server_open_now == "1")
         <a href="<?php echo($tg_admin); ?>" class="contact-link" target="_blank">
             <img src="elements/embeded/notme/tg.png" alt="Telegram" style="border-radius: 10px;">
         </a>
+        <a href="<?php echo($yt_admin); ?>" class="contact-link" target="_blank">
+            <img src="elements/embeded/notme/yt.png" alt="yt" style="border-radius: 10px;">
+        </a>
+        <a href="<?php echo($gh_admin); ?>" class="contact-link" target="_blank">
+            <img src="elements/embeded/notme/gh.png" alt="gh" style="border-radius: 10px;">
+        </a>
     </div>
 </body>
 </html>
