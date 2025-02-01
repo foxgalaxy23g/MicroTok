@@ -1,5 +1,5 @@
 <?php
-include("db.php");
+include("elements/php/db.php");
 
 if (isset($_COOKIE['auth_token'])) {
     $token = $_COOKIE['auth_token'];

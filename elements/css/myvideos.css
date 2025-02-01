@@ -1,0 +1,148 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Заголовок */
+h1 {
+    color: rgb(98, 0, 255);
+}
+
+/* Таблица */
+table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Кнопки */
+button {
+    background-color: rgb(98, 0, 255);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 6px 12px;
+    margin: 5px;
+}
+
+/* Боковая панель */
+.sidebar {
+    width: 200px;
+    background-color: #fff;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 20px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.sidebar a {
+    text-decoration: none;
+    color: #333;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    padding: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar a i {
+    margin-right: 10px;
+}
+
+.sidebar a:hover {
+    background-color: #f0f0f0;
+}
+
+/* Основной контент */
+.content {
+    margin-left: 200px;
+    padding: 20px;
+    flex-grow: 1;
+    width: calc(100% - 200px);
+}
+
+/* Шапка */
+.header-container {
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.header-container nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Тёмная тема */
+@media (prefers-color-scheme: dark) {
+    /* Фон страницы и цвет текста */
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+    /* Таблица */
+    table {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+    }
+
+    th, td {
+        border-bottom: 1px solid #444;
+    }
+
+    /* Кнопки */
+    button {
+        background-color: rgb(98, 0, 255);
+    }
+
+    button:hover {
+        background-color: rgb(98, 0, 179);
+    }
+
+    /* Боковая панель */
+    .sidebar {
+        background-color: #1e1e1e;
+        color: #fff;
+    }
+
+    .sidebar a {
+        color: #fff;
+    }
+
+    .sidebar a:hover {
+        background-color: #333;
+    }
+
+    /* Основной контент */
+    .content {
+        background-color: #181818;
+        color: #e0e0e0;
+    }
+
+    /* Шапка */
+    .header-container {
+        background-color: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+}

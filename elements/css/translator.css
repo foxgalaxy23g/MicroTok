@@ -1,0 +1,18 @@
+.skiptranslate, #google_translate_element, .goog-te-banner-frame, .goog-te-gadget {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    position: absolute !important;
+}
+body > .goog-te-banner-frame {
+display: none !important;
+}
+
+.goog-te-banner-frame.skiptranslate {
+display: none !important;
+}
+
+body {
+top: 0px !important;
+}

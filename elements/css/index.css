@@ -1,0 +1,153 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Стили для светлой темы */
+.container {
+    display: flex;
+    flex: 1;
+}
+
+.left-panel {
+    width: 50%;
+    padding: 40px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.form-container {
+    margin-bottom: 40px;
+}
+
+.form-container h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.form-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-container label {
+    margin-bottom: 8px;
+}
+
+.form-container input {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.form-container button {
+    padding: 10px;
+    background-color: rgb(98, 0, 255);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.form-container button:hover {
+    background-color: rgb(98, 0, 179);
+}
+
+.right-panel {
+    width: 50%;
+    background-color: rgb(98, 0, 255);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px;
+}
+
+.right-panel img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.right-panel h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.right-panel p {
+    font-size: 18px;
+}
+
+/* Тёмная тема */
+@media (prefers-color-scheme: dark) {
+    .left-panel {
+        background-color: #121212;
+        color: #fff;
+    }
+
+    .form-container input {
+        background-color: #333;
+        border: 1px solid #444;
+        color: #fff;
+    }
+
+    .form-container button {
+        background-color: rgb(98, 0, 255);
+        color: #fff;
+    }
+
+    .form-container button:hover {
+        background-color: rgb(98, 0, 255);
+    }
+
+    .right-panel {
+        background-color: #333;
+        color: white;
+    }
+
+    .right-panel h2 {
+        color: rgb(98, 0, 255);
+    }
+
+    .right-panel p {
+        color: #ccc;
+    }
+}
+
+/* Мобильные стили */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .left-panel, .right-panel {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .right-panel {
+        display: none;
+    }
+
+    .form-container {
+        margin-bottom: 20px;
+    }
+
+    .form-container h1 {
+        font-size: 20px;
+    }
+
+    .form-container button {
+        font-size: 14px;
+    }
+}

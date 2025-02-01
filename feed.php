@@ -1,5 +1,5 @@
 <?php
-include("db.php");
+include("elements/php/db.php");
 
 function authenticate($conn) {
     if (!isset($_COOKIE['auth_token'])) {
@@ -98,7 +98,12 @@ if ($video_id && in_array($video_id, $ids)) {
         header("Location: ?id=" . $random_id);
         exit;
     } else {
-        echo "<p>Видео пока нет.</p>";
+        include("header.php");
+        echo "<h1>";
+        echo htmlentities($project_name);
+        echo " has no video at all</h1>";
+        echo "<p>But you can publish the video first on this platform!</p>";
+        echo "<a href='make.php'>uplaod first video</a>";
         exit;
     }
 }
@@ -160,161 +165,13 @@ if ($result->num_rows > 0) {
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Лента видео</title>
+    <title><?php echo htmlentities(mb_strimwidth($video['description'], 0, 60, '...'), ENT_QUOTES, 'UTF-8'); ?> - MicroTok</title>
+    <link rel="stylesheet" href="elements/css/feed.css">
     <style>
-        .commenta {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-        .video-container {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            border-radius: 15px;
-            margin-left: 65vh;
-            overflow: hidden;
-            background: #000;
-        }
-        video {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        .overlay {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            color: white;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            line-height: 1.4;
-            box-shadow: 0 0 22px rgba(0, 0, 0, 0.5);
-        }
-        .bottom-space {
-            height: 100px; 
-        }
-        .play-pause-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            cursor: pointer;
-        }
 
-        .progress-bar-container {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: #333;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            width: 0;
-            height: 100%;
-            background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
-            transition: width 0.1s linear;
-        }
-        .reaction-buttons {
-            position: relative;
-            margin-right: 65vh;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            
-        }
-        .reaction-buttons button {
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px 15px;
-            font-size: 14px;
-            margin-left: 5vh;
-            cursor: pointer;
-            width: 100px;
-            transition: background-color 0.2s ease;
-        }
-        .reaction-buttons button:hover {
-            background-color: #e0e0e0;
-        }
-
-        .glow-on-hover {
-            width: 220px;
-            height: 50px;
-            border: none;
-            outline: none;
-            color: #fff;
-            background: #111;
-            cursor: pointer;
-            position: relative;
-            z-index: 0;
-            border-radius: 10px;
-        }
-
-        .glow-on-hover:before {
-            content: '';
-            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
-            position: absolute;
-            top: -2px;
-            left:-2px;
-            background-size: 400%;
-            z-index: -1;
-            filter: blur(5px);
-            width: calc(100% + 4px);
-            height: calc(100% + 4px);
-            animation: glowing 20s linear infinite;
-            opacity: 0;
-            transition: opacity .3s ease-in-out;
-            border-radius: 10px;
-        }
-
-        .glow-on-hover:active {
-            color: #000
-        }
-
-        .glow-on-hover:active:after {
-            background: transparent;
-        }
-
-        .glow-on-hover:hover:before {
-            opacity: 1;
-        }
-
-        .glow-on-hover:after {
-            z-index: -1;
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: #111;
-            left: 0;
-            top: 0;
-            border-radius: 10px;
-        }
-
-        @keyframes glowing {
-            0% { background-position: 0 0; }
-            50% { background-position: 400% 0; }
-            100% { background-position: 0 0; }
-        }
-
-        .subscription-buttons {
-            margin-top: 20px;
-            text-align: center;
-        }
     </style>
+    <meta name="description" content="Watch <?php echo htmlentities(mb_strimwidth($video['description'], 0, 150, '...'), ENT_QUOTES, 'UTF-8'); ?> by <?php echo htmlentities($username, ENT_QUOTES, 'UTF-8'); ?> in MicroTok">
+
 </head>
 <body>
     <?php include("header.php") ?>
@@ -322,7 +179,7 @@ if ($result->num_rows > 0) {
         <div class="video-container">
             <video id="video" src="<?php echo htmlspecialchars($video['path']); ?>" autoplay loop muted playsinline></video>
             <div class="overlay">
-                <p>Author: <?php echo htmlspecialchars($username); ?>(subs <?php echo $subscribers_count; ?>)</p>
+                <p><img src="<?php echo htmlspecialchars($avatar); ?>" alt="Avatar" style="width: 15px; height: 15px; border-radius: 50%; box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);">Author: <?php echo htmlspecialchars($username); ?>(subs <?php echo $subscribers_count; ?>)</p>
                 <p>Description: <?php echo htmlspecialchars($video['description']); ?></p>
             </div>
             <div class="progress-bar-container">
@@ -365,47 +222,8 @@ if ($result->num_rows > 0) {
     <script>
         let availableIds = <?php echo json_encode(array_values($ids)); ?>;
         let currentVideoId = <?php echo $video['id']; ?>;
-
-        availableIds = availableIds.filter(id => id !== currentVideoId);
-
-        window.addEventListener('scroll', () => {
-            if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-                loadRandomVideo();
-            }
-        });
-
-        function loadRandomVideo() {
-            if (availableIds.length > 0) {
-                let randomId = availableIds[Math.floor(Math.random() * availableIds.length)];
-                window.location.href = "?id=" + randomId;
-            } else {
-                alert("Нет других доступных видео.");
-            }
-        }
-
-        document.querySelector('#video').addEventListener('play', () => {
-            const videoElement = document.querySelector('#video');
-            if (videoElement.muted) {
-                videoElement.muted = false;
-            }
-        });
-
-        const videoElement = document.querySelector('#video');
-        const progressBar = document.querySelector('.progress-bar');
-
-        videoElement.addEventListener('timeupdate', () => {
-            const progress = (videoElement.currentTime / videoElement.duration) * 100;
-            progressBar.style.width = progress + '%';
-        });
-
-        function togglePlayPause() {
-            if (videoElement.paused) {
-                videoElement.play();
-            } else {
-                videoElement.pause();
-            }
-        }
     </script>
-    <script src="safe.js"></script>
+    <script src="elements/js/feed.js"></script>
+    <script src="elements/js/safe.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 <?php
-include("db.php");
+include("elements/php/db.php");
 
 function authenticate($conn) {
     if (!isset($_COOKIE['auth_token'])) {
@@ -57,13 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
 
     list($width, $height) = getimagesize($coverImage['tmp_name']);
     
-    if ($width != 1080 || $height != 1920) {
-        die("Cover image must have a resolution of 1080x1920 pixels.");
-    }
-
-    if ($width / $height != 9 / 16) {
-        die("Cover image must have an aspect ratio of 9:16.");
-    }
+    //if ($width != 1080 || $height != 1920) {
+    //    die("Cover image must have a resolution of 1080x1920 pixels.");
+    //}
+//
+    //if ($width / $height != 9 / 16) {
+    //    die("Cover image must have an aspect ratio of 9:16.");
+    //}
 
     $sql = "SELECT COUNT(*) FROM videos WHERE user_id = ? AND DATE(upload_time) = CURDATE()";
     $stmt = $conn->prepare($sql);
@@ -115,118 +115,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Upload</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: row;
-        }
-
-        h1 {
-            color: rgb(98, 0, 255);
-        }
-
-        form {
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            display: inline-block;
-            padding: 20px;
-            width: 90%;
-            max-width: 500px;
-            margin-top: 20px;
-        }
-
-        label {
-            display: block;
-            text-align: left;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #4a4a4a;
-        }
-
-        input[type="file"], textarea, button {
-            width: 100%;
-            margin-bottom: 16px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        button {
-            background-color: rgb(98, 0, 255);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        textarea {
-            resize: none;
-        }
-
-        .sidebar {
-            width: 200px;
-            background-color: #fff; 
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding-top: 20px;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-        }
-
-        .sidebar a {
-            text-decoration: none;
-            color: #333; 
-            margin: 20px 0;
-            display: flex;
-            align-items: center;
-            font-size: 18px;
-            padding: 10px;
-            transition: background-color 0.3s ease;
-        }
-
-        .sidebar a i {
-            margin-right: 10px;
-        }
-
-        .sidebar a:hover {
-            background-color: #f0f0f0; 
-        }
-
-        .content {
-            margin-left: 200px;
-            padding: 20px;
-            flex-grow: 1;
-            width: calc(100% - 200px); 
-        }
-
-        .header-container {
-            background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-            width: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000; 
-        }
-
-        .header-container nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-    </style>
+    <title>Upload video on <?php echo htmlentities($project_name); ?></title>
+    <link rel="stylesheet" href="elements/css/make.css">
+    <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
     <div class="header-container">
@@ -234,9 +125,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
     </div>
 
     <div class="sidebar">
-        <h1>^</h1>
+        <a href="make.php"><i></i></a> 
         <a href="make.php"><i>🎥</i>Upload video</a>
         <a href="myvideos.php"><i>🎞</i>Manage videos</a>
+        <a href="settings.php"><i>⚙</i>Settings</a> 
     </div>
 
     <div class="content">
@@ -247,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
             <input type="file" name="video" accept="video/mp4" required><br>
             <label>Video description:</label>
             <textarea name="description" rows="4" placeholder="Enter video description" required></textarea><br>
-            <label>Upload cover image (JPG/PNG, min 10 MB, 9:16 aspect ratio):</label>
+            <label>Upload cover image (JPG/PNG, max 10 MB, auto-resize to 1080x1920):</label>
             <input type="file" name="cover_image" accept="image/jpeg, image/png" required><br>
             <button type="submit">Upload</button>
         </form>

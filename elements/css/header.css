@@ -1,0 +1,73 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Стили для светлой темы */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgb(255, 255, 255);
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333; /* Чёрный цвет для светлой темы */
+    text-decoration: none;
+}
+
+.logo img {
+    height: 40px;
+    margin-right: 10px;
+}
+
+.buttons {
+    display: flex;
+    gap: 20px;
+}
+
+.buttons a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    color: rgb(98, 0, 255);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.buttons a i {
+    font-size: 1.2rem;
+    color: rgb(98, 0, 255);
+}
+
+/* Стили для тёмной темы */
+@media (prefers-color-scheme: dark) {
+    /* Фон и текст заголовка */
+    .header {
+        background-color: #333; /* Тёмный фон для шапки */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo {
+        color: #fff; /* Белый цвет текста для логотипа */
+    }
+
+    /* Цвет ссылок в тёмной теме */
+    .buttons a {
+        color: rgb(98, 0, 255); /* Розовый цвет для ссылок */
+    }
+
+    .buttons a i {
+        color: rgb(98, 0, 255); /* Розовый цвет для иконок */
+    }
+}
+.google_translate_element{
+    display: none;
+}

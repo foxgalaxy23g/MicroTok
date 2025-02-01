@@ -1,5 +1,5 @@
 <?php
-include("db.php");
+include("elements/php/db.php");
 
 function authenticate($conn) {
     if (!isset($_COOKIE['auth_token'])) {
@@ -121,94 +121,11 @@ $result = $stmt->get_result();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Videos</title>
+    <title><?php echo htmlentities($project_name); ?> Studio</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-        h1 {
-            color: rgb(98, 0, 255);
-        }
-        table {
-            width: 80%;
-            margin: 20px auto;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        button {
-            background-color: rgb(98, 0, 255);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            padding: 6px 12px;
-            margin: 5px;
-        }
-
-                .sidebar {
-            width: 200px;
-            background-color: #fff; 
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding-top: 20px;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-        }
-
-        .sidebar a {
-            text-decoration: none;
-            color: #333; 
-            margin: 20px 0;
-            display: flex;
-            align-items: center;
-            font-size: 18px;
-            padding: 10px;
-            transition: background-color 0.3s ease; 
-        }
-
-        .sidebar a i {
-            margin-right: 10px;
-        }
-
-        .sidebar a:hover {
-            background-color: #f0f0f0;
-        }
-
-        .content {
-            margin-left: 200px;
-            padding: 20px;
-            flex-grow: 1;
-            width: calc(100% - 200px); 
-        }
-
-        .header-container {
-            background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-            width: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-        }
-
-        .header-container nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
     </style>
+    <link rel="stylesheet" href="elements/css/myvideos.css">
+    <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
     <div class="header-container">
@@ -219,6 +136,7 @@ $result = $stmt->get_result();
         <a href="make.php"><i></i></a> 
         <a href="make.php"><i>🎥</i>Upload video</a> 
         <a href="myvideos.php"><i>🎞</i>Manage videos</a> 
+        <a href="settings.php"><i>⚙</i>Settings</a> 
     </div>
 
     <div class="content">
