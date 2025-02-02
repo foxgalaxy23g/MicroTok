@@ -6,31 +6,7 @@ include("elements/php/closed.php");
 ?>
 
 <?php
-    // Проверяем, что пользователь авторизован и его id существует
-    function authenticate($conn) {
-        if (!isset($_COOKIE['auth_token'])) {
-            header('Location: login.php');
-            exit();
-        }
-    
-        $token = $_COOKIE['auth_token'];
-        $sql = "SELECT id FROM users WHERE token = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('s', $token);
-        $stmt->execute();
-        $stmt->bind_result($user_id);
-        $stmt->fetch();
-        $stmt->close();
-    
-        if (!$user_id) {
-            header('Location: index.php');
-            exit();
-        }
-    
-        return $user_id;
-    }
-    
-    $user_id = authenticate($conn);
+    include("elements/php/verify.php");
 
     // Удаление аккаунта
     if (isset($_POST['delete_account'])) {

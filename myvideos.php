@@ -2,30 +2,7 @@
 include("elements/php/db.php");
 include("elements/php/closed.php");
 
-function authenticate($conn) {
-    if (!isset($_COOKIE['auth_token'])) {
-        header('Location: index.php');
-        exit();
-    }
-
-    $token = $_COOKIE['auth_token'];
-    $sql = "SELECT id FROM users WHERE token = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('s', $token);
-    $stmt->execute();
-    $stmt->bind_result($user_id);
-    $stmt->fetch();
-    $stmt->close();
-
-    if (!$user_id) {
-        header('Location: index.php');
-        exit();
-    }
-
-    return $user_id;
-}
-
-$user_id = authenticate($conn);
+include("elements/php/verify.php");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_POST['description'])) {
     $video = $_FILES['video'];

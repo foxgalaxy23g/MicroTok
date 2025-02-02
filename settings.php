@@ -1,31 +1,7 @@
 <?php
 require_once 'elements/php/db.php'; 
 include("elements/php/closed.php");
-
-function authenticate($conn) {
-    if (!isset($_COOKIE['auth_token'])) {
-        header('Location: login.php');
-        exit();
-    }
-
-    $token = $_COOKIE['auth_token'];
-    $sql = "SELECT id FROM users WHERE token = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('s', $token);
-    $stmt->execute();
-    $stmt->bind_result($user_id);
-    $stmt->fetch();
-    $stmt->close();
-
-    if (!$user_id) {
-        header('Location: index.php');
-        exit();
-    }
-
-    return $user_id;
-}
-
-$user_id = authenticate($conn);
+include("elements/php/verify.php");
 
 // Получаем данные пользователя
 $query = "SELECT * FROM users WHERE id = ?";
@@ -102,10 +78,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "Ошибка при загрузке файла.<br>";
         }
     }
-
-    // Удаление аккаунта
-    if (isset($_POST['delete_account'])) {
-        header("Location: warning-delete.php");
+    if (isset($_POST['account_session'])) {
+        header("Location: sessions.php");
+    }
+    if (isset($_POST['exit_account'])) {
+        header("Location: warning.php");
     }
 }
 ?>
@@ -151,8 +128,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <form method="post">
         <h2>Actions with my account</h2>
-        <div>
+        <div style="display: flex;">
             <button type="submit" name="delete_account">Delete your account</button>
+        </div>
+        <div>
+            <button type="submit" name="account_session">Sessions</button>
+            <button type="submit" name="exit_account">Exit from my account</button>
         </div>
     </form>
     <form method="post">

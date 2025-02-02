@@ -1,7 +1,12 @@
 <?php 
 include("elements/php/translator.php"); 
 include("elements/php/cursor.php");
+include("elements/php/db.php");
 include("elements/php/closed.php");
+
+if (!isset($_COOKIE['auth_token'])) {
+    header("Location: index.php");
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
