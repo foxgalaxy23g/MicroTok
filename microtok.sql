@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Фев 03 2025 г., 13:47
+-- Время создания: Фев 04 2025 г., 19:44
 -- Версия сервера: 8.0.30
--- Версия PHP: 7.2.34
+-- Версия PHP: 8.1.9
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -76,6 +76,17 @@ CREATE TABLE `subscriptions` (
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы `themes`
+--
+
+CREATE TABLE `themes` (
+  `id` int NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы `users`
 --
 
@@ -116,15 +127,16 @@ CREATE TABLE `videos` (
   `path` varchar(255) NOT NULL,
   `description` text NOT NULL,
   `upload_time` datetime NOT NULL,
-  `cover_image_path` varchar(255) DEFAULT NULL
+  `cover_image_path` varchar(255) DEFAULT NULL,
+  `theme_id` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Дамп данных таблицы `videos`
 --
 
-INSERT INTO `videos` (`id`, `user_id`, `path`, `description`, `upload_time`, `cover_image_path`) VALUES
-(2, 1, 'uploads/videos/679f730c8c66f.mp4', '123', '2025-02-02 16:28:44', 'uploads/covers/679f730c8cc1a.png');
+INSERT INTO `videos` (`id`, `user_id`, `path`, `description`, `upload_time`, `cover_image_path`, `theme_id`) VALUES
+(3, 1, 'uploads/videos/67a231e82721f.mp4', 'furry', '2025-02-04 18:27:36', 'uploads/covers/67a231e82edf2.png', 8);
 
 -- --------------------------------------------------------
 
@@ -173,6 +185,13 @@ ALTER TABLE `comment_replies`
 ALTER TABLE `subscriptions`
   ADD PRIMARY KEY (`user_id`,`channel_id`),
   ADD KEY `channel_id` (`channel_id`);
+
+--
+-- Индексы таблицы `themes`
+--
+ALTER TABLE `themes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
 
 --
 -- Индексы таблицы `users`
@@ -226,6 +245,12 @@ ALTER TABLE `comment_replies`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT для таблицы `themes`
+--
+ALTER TABLE `themes`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
@@ -241,7 +266,7 @@ ALTER TABLE `user_tokens`
 -- AUTO_INCREMENT для таблицы `videos`
 --
 ALTER TABLE `videos`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT для таблицы `video_likes`
@@ -286,19 +311,6 @@ ALTER TABLE `subscriptions`
 --
 ALTER TABLE `user_tokens`
   ADD CONSTRAINT `user_tokens_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Ограничения внешнего ключа таблицы `videos`
---
-ALTER TABLE `videos`
-  ADD CONSTRAINT `videos_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Ограничения внешнего ключа таблицы `video_likes`
---
-ALTER TABLE `video_likes`
-  ADD CONSTRAINT `video_likes_ibfk_1` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `video_likes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
