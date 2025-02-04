@@ -2,193 +2,7 @@
 include("elements/php/db.php");
 include("elements/php/closed.php");
 include("elements/php/verify.php");
-
-// ==================================================================
-// Обработка AJAX-запросов
-// ==================================================================
-
-// 1. Лайки/дизлайки для видео
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['video_id']) && !isset($_POST['load_comments'])) {
-    $user_id = authenticate($conn);
-    $video_id = (int) $_POST['video_id'];
-    $action = $_POST['action'];
-
-    if (in_array($action, ['like', 'dislike'])) {
-        $sql = "DELETE FROM video_likes WHERE video_id = ? AND user_id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('ii', $video_id, $user_id);
-        $stmt->execute();
-        $stmt->close();
-
-        $sql = "INSERT INTO video_likes (video_id, user_id, reaction) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('iis', $video_id, $user_id, $action);
-        $stmt->execute();
-        $stmt->close();
-    }
-
-    $sql = "SELECT 
-                SUM(CASE WHEN reaction = 'like' THEN 1 ELSE 0 END) AS likes,
-                SUM(CASE WHEN reaction = 'dislike' THEN 1 ELSE 0 END) AS dislikes
-            FROM video_likes WHERE video_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('i', $video_id);
-    $stmt->execute();
-    $stmt->bind_result($likes, $dislikes);
-    $stmt->fetch();
-    $stmt->close();
-
-    echo json_encode([
-        'likes' => $likes,
-        'dislikes' => $dislikes
-    ]);
-    exit();
-}
-
-// 2. Подписка/отписка канала
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['channel_id'])) {
-    $user_id = authenticate($conn);
-    $channel_id = (int) $_POST['channel_id'];
-    $action = $_POST['action'];
-
-    if ($action === 'subscribe') {
-        $sql = "INSERT INTO subscriptions (user_id, channel_id) VALUES (?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('ii', $user_id, $channel_id);
-        $stmt->execute();
-        $stmt->close();
-    } elseif ($action === 'unsubscribe') {
-        $sql = "DELETE FROM subscriptions WHERE user_id = ? AND channel_id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('ii', $user_id, $channel_id);
-        $stmt->execute();
-        $stmt->close();
-    }
-    header("Location: ?id=$video_id");
-    exit();
-}
-
-// 3. Лайки/дизлайки для комментариев
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment_action'], $_POST['comment_id'])) {
-    $user_id = authenticate($conn);
-    $comment_id = (int) $_POST['comment_id'];
-    $action = $_POST['comment_action'];
-
-    if (in_array($action, ['like', 'dislike'])) {
-        $sql = "DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('ii', $comment_id, $user_id);
-        $stmt->execute();
-        $stmt->close();
-
-        $sql = "INSERT INTO comment_likes (comment_id, user_id, reaction) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('iis', $comment_id, $user_id, $action);
-        $stmt->execute();
-        $stmt->close();
-    }
-    $sql = "SELECT 
-                IFNULL((SELECT SUM(CASE WHEN reaction = 'like' THEN 1 ELSE 0 END) FROM comment_likes WHERE comment_id = ?),0) AS likes,
-                IFNULL((SELECT SUM(CASE WHEN reaction = 'dislike' THEN 1 ELSE 0 END) FROM comment_likes WHERE comment_id = ?),0) AS dislikes";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('ii', $comment_id, $comment_id);
-    $stmt->execute();
-    $stmt->bind_result($likes, $dislikes);
-    $stmt->fetch();
-    $stmt->close();
-    echo json_encode(['likes' => $likes, 'dislikes' => $dislikes]);
-    exit();
-}
-
-// 4. Отправка нового комментария
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'], $_POST['video_id']) && !isset($_POST['reply'])) {
-    $user_id = authenticate($conn);
-    $video_id = (int) $_POST['video_id'];
-    $comment = htmlspecialchars($_POST['comment'], ENT_QUOTES, 'UTF-8');
-    if (!empty($comment)) {
-        $sql = "INSERT INTO comments (video_id, user_id, comment) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('iis', $video_id, $user_id, $comment);
-        $stmt->execute();
-        $stmt->close();
-    }
-    echo loadComments($video_id);
-    exit();
-}
-
-// 5. Отправка ответа на комментарий
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply'], $_POST['comment_id'])) {
-    $user_id = authenticate($conn);
-    $comment_id = (int) $_POST['comment_id'];
-    $reply = htmlspecialchars($_POST['reply'], ENT_QUOTES, 'UTF-8');
-    if (!empty($reply)) {
-        $sql = "INSERT INTO comment_replies (comment_id, user_id, reply) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('iis', $comment_id, $user_id, $reply);
-        $stmt->execute();
-        $stmt->close();
-    }
-    echo loadCommentReplies($comment_id);
-    exit();
-}
-
-// 6. Загрузка комментариев по AJAX
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['load_comments'], $_POST['video_id'])) {
-    $video_id = (int) $_POST['video_id'];
-    echo loadComments($video_id);
-    exit();
-}
-
-// 7. Загрузка ответов по AJAX
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['load_replies'], $_POST['comment_id'])) {
-    $comment_id = (int) $_POST['comment_id'];
-    echo loadCommentReplies($comment_id);
-    exit();
-}
-
-function loadComments($video_id) {
-    global $conn;
-    // Возвращаем id автора комментария (user_id) и аватар
-    $sql = "SELECT c.id, c.user_id, c.comment, c.created_at, u.username, u.avatar,
-            IFNULL((SELECT SUM(CASE WHEN reaction = 'like' THEN 1 ELSE 0 END) FROM comment_likes WHERE comment_id = c.id),0) AS likes,
-            IFNULL((SELECT SUM(CASE WHEN reaction = 'dislike' THEN 1 ELSE 0 END) FROM comment_likes WHERE comment_id = c.id),0) AS dislikes,
-            (SELECT COUNT(*) FROM comment_replies WHERE comment_id = c.id) AS replies_count
-            FROM comments c 
-            JOIN users u ON c.user_id = u.id
-            WHERE c.video_id = ?
-            ORDER BY c.created_at DESC";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('i', $video_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $comments = [];
-    while ($row = $result->fetch_assoc()) {
-        $comments[] = $row;
-    }
-    $stmt->close();
-    return json_encode($comments);
-}
-
-function loadCommentReplies($comment_id) {
-    global $conn;
-    // Возвращаем id автора ответа (user_id) и аватар
-    $sql = "SELECT r.id, r.reply, r.created_at, u.username, u.avatar, r.user_id 
-            FROM comment_replies r 
-            JOIN users u ON r.user_id = u.id
-            WHERE r.comment_id = ?
-            ORDER BY r.created_at ASC";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('i', $comment_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $replies = [];
-    while ($row = $result->fetch_assoc()) {
-        $replies[] = $row;
-    }
-    $stmt->close();
-    return json_encode($replies);
-}
-
+include("elements/php/api1.php");
 // ==================================================================
 // Загрузка видео и данных для отображения страницы
 // ==================================================================
@@ -265,6 +79,52 @@ if ($result->num_rows > 0) {
     echo "<p>Видео не найдено.</p>";
     exit;
 }
+
+function changeVideo() {
+  global $conn, $video_id;
+
+  // 1. Получаем текущую тему видео
+  $sql = "SELECT theme_id FROM videos WHERE id = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("i", $video_id);
+  $stmt->execute();
+  $stmt->bind_result($theme_id);
+  $stmt->fetch();
+  $stmt->close();
+
+  // 2. Ищем видео из той же темы, что и текущее, или самое популярное, если нет тем
+  $sql = "
+      SELECT v.id FROM videos v 
+      LEFT JOIN video_likes vl ON v.id = vl.video_id
+      WHERE v.theme_id = ? AND v.id != ? 
+      GROUP BY v.id 
+      ORDER BY COUNT(vl.id) DESC 
+      LIMIT 1";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("ii", $theme_id, $video_id);
+  $stmt->execute();
+  $stmt->bind_result($next_video_id);
+  $stmt->fetch();
+  $stmt->close();
+
+  // 3. Если нет видео из той же темы, показываем случайное
+  if (!$next_video_id) {
+      $sql = "SELECT id FROM videos WHERE id != ? ORDER BY RAND() LIMIT 1";
+      $stmt = $conn->prepare($sql);
+      $stmt->bind_param("i", $video_id);
+      $stmt->execute();
+      $stmt->bind_result($next_video_id);
+      $stmt->fetch();
+      $stmt->close();
+  }
+
+  // 4. Переадресуем пользователя на следующее видео
+  if ($next_video_id) {
+      header("Location: ?id=" . $next_video_id);
+      exit;
+  }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -272,335 +132,16 @@ if ($result->num_rows > 0) {
   <meta charset="UTF-8">
   <title><?php echo htmlentities(mb_strimwidth($video['description'], 0, 60, '...'), ENT_QUOTES, 'UTF-8'); ?> - MicroTok</title>
   <style>
-    /* Общие стили */
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      overflow-x: hidden;
-      background-color: #f0f0f0;
-    }
-    header {
-      z-index: 3000;
-      position: relative;
-    }
-    /* Контейнер основного контента. При открытии окна комментариев сдвигается влево */
-    .main-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transition: transform 0.5s ease;
-      width: 100%;
-    }
-    .with-comments {
-      transform: translateX(-33.33%);
-    }
-    /* Центрированный плеер */
-    .video-container {
-      position: relative;
-      width: 100%;
-      max-width: 400px;
-      border-radius: 15px;
-      overflow: hidden;
-      background: #000;
-      margin: 0 auto;
-      cursor: pointer; /* для клика по видео */
-    }
-    video {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-    .overlay {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      color: white;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 5px 10px;
-      border-radius: 5px;
-      font-size: 14px;
-      line-height: 1.4;
-      box-shadow: 0 0 22px rgba(0, 0, 0, 0.5);
-    }
-    /* Кнопки реакции для видео – расположены строго справа от плеера */
-    .reaction-buttons {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .reaction-buttons form,
-    .reaction-buttons div {
-      margin: 0;
-    }
-    .reaction-buttons button {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: none;
-      background-color: #f0f0f0;
-      font-size: 20px;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 0 5px rgba(0,0,0,0.2);
-      transition: background-color 0.2s ease;
-    }
-    .reaction-buttons button:hover {
-      
-    }
-    /* Подписка – та же круглая кнопка */
-    .subscription-buttons button {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: none;
-      background-color: #f0f0f0;
-      font-size: 20px;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 0 5px rgba(0,0,0,0.2);
-      transition: background-color 0.2s ease;
-    }
-    .subscription-buttons button:hover {
-    }
-    /* Эффект "дождя" */
-    #reaction-rain-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-      z-index: 1000;
-    }
-    /* Кнопка для открытия окна комментариев (расположена отдельно, например, в правом верхнем углу) */
-    #open-comments-btn {
-      margin-top: 10px;
-    }
-    /* Окно комментариев */
-    #comments-container {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 33.33%;
-      height: 100%;
-      background: #fff;
-      border-left: 1px solid #ccc;
-      padding: 60px 10px 10px 10px;
-      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-      z-index: 2000;
-      transform: translateX(100%);
-      transition: transform 0.5s ease;
-      overflow-y: auto;
-    }
-    #comments-container.visible {
-      transform: translateX(0);
-    }
-    #comments-container h3 {
-      margin-top: 0;
-      text-align: center;
-    }
-    /* Форма нового комментария */
-    #comments-container form {
-      margin-bottom: 15px;
-    }
-    #comments-container form textarea {
-      width: 100%;
-      height: 60px;
-      resize: vertical;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      font-family: inherit;
-    }
-    #comments-container form button {
-      padding: 8px 12px;
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 5px;
-    }
-    /* Оформление блока комментария */
-    .comment {
-      background-color: #fafafa;
-      border: 1px solid #ddd;
-      border-radius: 15px;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    .comment-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 5px;
-    }
-    .comment-header img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      cursor: pointer;
-    }
-    .comment-header a {
-      text-decoration: none;
-      color: #007bff;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .comment-body {
-      margin: 5px 0;
-      padding: 8px;
-      background-color: #fff;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-    }
-    .comment-actions {
-      margin-top: 5px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .comment-actions .action-btn {
-      background: none;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-    }
-    .comment-actions .action-btn:hover {
-      opacity: 0.8;
-    }
-    /* Оформление блока ответов */
-    .replies {
-      margin-top: 10px;
-      padding-left: 10px;
-      border-left: 2px dashed #ddd;
-    }
-    .reply {
-      background-color: #fefefe;
-      border: 1px solid #ddd;
-      border-radius: 15px;
-      padding: 8px;
-      margin-bottom: 8px;
-    }
-    .reply-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 5px;
-    }
-    .reply-header img {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      object-fit: cover;
-      cursor: pointer;
-    }
-    .reply-header a {
-      text-decoration: none;
-      color: #007bff;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .reply-body {
-      padding: 6px;
-      background-color: #fff;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-    }
-    .reply-actions {
-      margin-top: 5px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .reply-actions .action-btn {
-      background: none;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-    }
-    .reply-actions .action-btn:hover {
-      opacity: 0.8;
-    }
-    
-    /* Тёмная тема для окна комментариев */
-    @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #121212;
-        color: #fff;
-      }
-      .video-container {
-        background: #333;
-      }
-      .reply
-      {
-        background: #333;
-        
-      }
-      .overlay {
-        background: rgba(0, 0, 0, 0.8);
-      }
-      .reaction-buttons button,
-      .subscription-buttons button {
-        background-color: #333;
-        color: #fff;
-      }
-      #comments-container {
-        background: #222;
-        border-left: 1px solid #444;
-        color: #fff;
-      }
-      .reply-header
-        {
-            background-color: #313131;
-        }
-        .overlay {
-          background: rgba(0, 0, 0, 0.8);
-        }
-      .comment {
-        background-color: #333;
-        border: 1px solid #444;
-      }
-      .comment-header a,
-      .reply-header a {
-        color: #66aaff;
-      }
-      .comment-body, .reply-body {
-        background-color: #444;
-        border: 1px solid #555;
-      }
-    }
-    /* Плавное появление элементов */
-    .fade-in {
-      opacity: 0;
-      transition: opacity 1s ease-in-out;
-    }
-    .fade-in.visible {
-      opacity: 1;
-    }
-    .video-container{
-        margin-top: 5%;
-    }
+
   </style>
+  <link rel="stylesheet" href="elements/css/feed/feed.css">
+  <link rel="stylesheet" href="elements/css/feed/feed2.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <meta name="description" content="Watch <?php echo htmlentities(mb_strimwidth($video['description'], 0, 150, '...'), ENT_QUOTES, 'UTF-8'); ?> by <?php echo htmlentities($username, ENT_QUOTES, 'UTF-8'); ?> in MicroTok">
 </head>
 <body>
   <?php include("header.php"); ?>
+  <h2 style="color: rgba(98, 0, 255, 0);">^</h2>
 
   <!-- Кнопка для открытия/закрытия комментариев (отдельно от кнопок лайка/дизлайка) -->
 
@@ -646,7 +187,7 @@ if ($result->num_rows > 0) {
             👎<br>
             <span id="dislikes-count"><?php echo $dislikes; ?></span>
           </button>
-          <button id="open-comments-btn">C</button>
+          <button id="open-comments-btn" style="border-radius: 50px; margin-top: 13.5vh; margin-right: -0.7vh;">C</button>
         </form>
         <div class="subscription-buttons">
           <?php if ($is_subscribed > 0): ?>
@@ -804,7 +345,6 @@ if ($result->num_rows > 0) {
             let data = JSON.parse(response);
             $(`.comment[data-comment-id="${commentId}"] .like-comment span`).text(data.likes);
             $(`.comment[data-comment-id="${commentId}"] .dislike-comment span`).text(data.dislikes);
-            createRain('👎');
           }
         });
       });
@@ -916,7 +456,6 @@ if ($result->num_rows > 0) {
             let data = JSON.parse(response);
             $('#likes-count').text(data.likes);
             $('#dislikes-count').text(data.dislikes);
-            createRain('👎');
           }
         });
       });
@@ -960,15 +499,18 @@ if ($result->num_rows > 0) {
 });
 
 function changeVideo() {
-  // Логика для смены видео. Например:
-  const currentVideo = document.querySelector('.video.active');
-  const nextVideo = currentVideo.nextElementSibling;  // Или .previousElementSibling для предыдущего
-
-  if (nextVideo) {
-    currentVideo.classList.remove('active');
-    nextVideo.classList.add('active');
-  }
+    $.ajax({
+        url: 'change_video.php',
+        type: 'POST',
+        data: { current_video_id: currentVideoId },
+        success: function(response) {
+            if (response) {
+                window.location.href = '?id=' + response;
+            }
+        }
+    });
 }
+
   </script>
   <script>
     let availableIds = <?php echo json_encode(array_values($ids)); ?>;

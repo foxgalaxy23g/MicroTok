@@ -1,13 +1,21 @@
 <?php
 include("elements/php/db.php");
 include("elements/php/closed.php");
-
 include("elements/php/verify.php");
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_FILES['cover_image']) && isset($_POST['description'])) {
+// Получаем список доступных тем
+$sql = "SELECT id, name FROM themes";
+$result = $conn->query($sql);
+$themes = [];
+while ($row = $result->fetch_assoc()) {
+    $themes[] = $row;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_FILES['cover_image']) && isset($_POST['description']) && isset($_POST['theme_id'])) {
     $video = $_FILES['video'];
     $description = trim($_POST['description']);
     $coverImage = $_FILES['cover_image'];
+    $theme_id = intval($_POST['theme_id']);
 
     if (empty($description)) {
         die("Video description is required.");
@@ -33,28 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
         die("Cover image size must be at least 10 MB.");
     }
 
-    list($width, $height) = getimagesize($coverImage['tmp_name']);
-    
-    //if ($width != 1080 || $height != 1920) {
-    //    die("Cover image must have a resolution of 1080x1920 pixels.");
-    //}
-//
-    //if ($width / $height != 9 / 16) {
-    //    die("Cover image must have an aspect ratio of 9:16.");
-    //}
-
-    $sql = "SELECT COUNT(*) FROM videos WHERE user_id = ? AND DATE(upload_time) = CURDATE()";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('i', $user_id);
-    $stmt->execute();
-    $stmt->bind_result($count);
-    $stmt->fetch();
-    $stmt->close();
-
-    if ($count >= 5) {
-        die("You can upload up to 5 videos per day.");
-    }
-
     $uploadDir = 'uploads/videos/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
@@ -78,13 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
         die("Cover image upload failed.");
     }
 
-    $sql = "INSERT INTO videos (user_id, path, cover_image_path, description, upload_time) VALUES (?, ?, ?, ?, NOW())";
+    $sql = "INSERT INTO videos (user_id, path, description, upload_time, cover_image_path, theme_id) VALUES (?, ?, ?, NOW(), ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param('isss', $user_id, $videoPath, $coverImagePath, $description);
+    $stmt->bind_param('isssi', $user_id, $videoPath, $description, $coverImagePath, $theme_id);
     $stmt->execute();
     $stmt->close();
 
-    echo "Video uploaded successfully with cover image.";
+    echo "Video uploaded successfully with cover image and theme.";
 }
 ?>
 
@@ -100,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
 <body>
     <div class="header-container">
         <?php 
-        include("header.php"); 
+        include("header_old.php"); 
         include("elements/php/closed.php");
         ?>
     </div>
@@ -115,15 +101,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
     </div>
 
     <div class="content">
-        <h1>^</h1>
         <h1>Upload Video</h1>
         <form method="post" enctype="multipart/form-data">
             <label>Select video (MP4, max 50 MB):</label>
             <input type="file" name="video" accept="video/mp4" required><br>
             <label>Video description:</label>
-            <textarea name="description" rows="4" placeholder="Enter video description" required></textarea><br>
-            <label>Upload cover image (JPG/PNG, max 10 MB, auto-resize to 1080x1920):</label>
+            <textarea name="description" rows="4" required></textarea><br>
+            <label>Upload cover image (JPG/PNG, max 10 MB):</label>
             <input type="file" name="cover_image" accept="image/jpeg, image/png" required><br>
+            <label>Select theme:</label>
+            <select name="theme_id" required>
+                <?php foreach ($themes as $theme): ?>
+                    <option value="<?php echo $theme['id']; ?>"><?php echo htmlentities($theme['name']); ?></option>
+                <?php endforeach; ?>
+            </select><br>
             <button type="submit">Upload</button>
         </form>
     </div>

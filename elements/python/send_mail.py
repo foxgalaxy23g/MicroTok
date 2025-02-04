@@ -7,11 +7,10 @@ def send_verification_email(to_email, verification_code, ip_address, user_agent,
     from_email = ""  # Your email address
     from_password = ""  # Your email password
     subject = f"Login Attempt on {project_name} Account"
-    project_name = "MicroTok"
 
     # HTML Body with styles
     body = f"""
-<html>
+    <html>
     <head>
         <style>
             body {{
@@ -23,23 +22,15 @@ def send_verification_email(to_email, verification_code, ip_address, user_agent,
                 margin: 0 auto;
                 padding: 20px;
                 border: 1px solid #ddd;
-                border-radius: 18px;
+                border-radius: 10px;
                 background-color: #f9f9f9;
             }}
             .header {{
                 text-align: center;
                 margin-bottom: 20px;
-                display: flex;
-                background-color: #a200ff;
-                border-radius: 18px;
-                padding: 15px;
-                justify-content: center;
-                align-items: center;
             }}
             .logo {{
-                width: 70px;
-                height: 70px;
-                margin-right: 15px;
+                width: 150px;
             }}
             .content {{
                 font-size: 16px;
@@ -56,21 +47,15 @@ def send_verification_email(to_email, verification_code, ip_address, user_agent,
                 text-align: center;
                 margin-top: 20px;
             }}
-            .header h2 {{
-                color: #fff;
-                font-size: 30px;
-                margin: 0;
-            }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
                 <img src="cid:logo" class="logo" alt="Logo">
-                <h2>{project_name}</h2>
             </div>
             <div class="content">
-                <p>Hi,</p>
+                <p>Hello,</p>
                 <p>We noticed a login attempt to your {project_name} account from an unrecognized device.</p>
                 <p><strong>Verification Code:</strong> <span class="verification-code">{verification_code}</span></p>
                 <p>If you did not initiate this login attempt, please disregard this email.</p>
@@ -86,7 +71,7 @@ def send_verification_email(to_email, verification_code, ip_address, user_agent,
             </div>
         </div>
     </body>
-</html>
+    </html>
     """
 
     msg = MIMEMultipart()
@@ -95,14 +80,11 @@ def send_verification_email(to_email, verification_code, ip_address, user_agent,
     msg['Subject'] = subject
 
     # Attach logo image
-    try:
-        with open("elements/embeded/me/logo.png", "rb") as logo_file:
-            from email.mime.image import MIMEImage
-            logo = MIMEImage(logo_file.read())
-            logo.add_header('Content-ID', '<logo>')
-            msg.attach(logo)
-    except FileNotFoundError:
-        print("Warning: Logo image not found, email will be sent without it.")
+    with open("elements/embeded/me/logo-header.png", "rb") as logo_file:
+        logo_data = logo_file.read()
+        logo_attachment = MIMEText(logo_data, 'base64', 'utf-8')
+        logo_attachment.add_header('Content-ID', '<logo>')
+        msg.attach(logo_attachment)
 
     # Attach HTML body
     msg.attach(MIMEText(body, 'html'))
@@ -112,7 +94,8 @@ def send_verification_email(to_email, verification_code, ip_address, user_agent,
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(from_email, from_password)
-        server.sendmail(from_email, to_email, msg.as_string())
+        text = msg.as_string()
+        server.sendmail(from_email, to_email, text)
         server.quit()
         print("Email sent successfully")
     except Exception as e:

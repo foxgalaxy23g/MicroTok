@@ -1,0 +1,321 @@
+/* Общие стили */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  overflow-x: hidden;
+  background-color: #f0f0f0;
+}
+.open-comments-btn{
+  margin-top: 60px;
+}
+header {
+  z-index: 3000;
+  position: relative;
+}
+/* Контейнер основного контента. При открытии окна комментариев сдвигается влево */
+.main-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.5s ease;
+  width: 100%;
+}
+.with-comments {
+  transform: translateX(-33.33%);
+}
+/* Центрированный плеер */
+.video-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 15px;
+  overflow: hidden;
+  background: #000;
+  margin: 0 auto;
+  cursor: pointer; /* для клика по видео */
+}
+video {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.overlay {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  color: white;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 0 22px rgba(0, 0, 0, 0.5);
+}
+/* Кнопки реакции для видео – расположены строго справа от плеера */
+.reaction-buttons {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.reaction-buttons form,
+.reaction-buttons div {
+  margin: 0;
+}
+.reaction-buttons button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  background-color: #f0f0f0;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+  transition: background-color 0.2s ease;
+}
+/* Подписка – та же круглая кнопка */
+.subscription-buttons button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  background-color: #f0f0f0;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+  transition: background-color 0.2s ease;
+}
+/* Эффект "дождя" */
+#reaction-rain-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+/* Кнопка для открытия окна комментариев (расположена отдельно, например, в правом верхнем углу) */
+#open-comments-btn {
+  margin-top: 10px;
+}
+/* Окно комментариев */
+#comments-container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 33.33%;
+  height: 100%;
+  background: #fff;
+  border-left: 1px solid #ccc;
+  padding: 60px 10px 10px 10px;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+  z-index: 2000;
+  transform: translateX(100%);
+  transition: transform 0.5s ease;
+  overflow-y: auto;
+}
+#comments-container.visible {
+  transform: translateX(0);
+}
+#comments-container h3 {
+  margin-top: 0;
+  text-align: center;
+}
+/* Форма нового комментария */
+#comments-container form {
+  margin-bottom: 15px;
+}
+#comments-container form textarea {
+  width: 100%;
+  height: 60px;
+  resize: vertical;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-family: inherit;
+}
+#comments-container form button {
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+/* Оформление блока комментария */
+.comment {
+  background-color: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 15px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.comment-header img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+.comment-header a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+  cursor: pointer;
+}
+.comment-body {
+  margin: 5px 0;
+  padding: 8px;
+  background-color: #fff;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+.comment-actions {
+  margin-top: 5px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.comment-actions .action-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.comment-actions .action-btn:hover {
+  opacity: 0.8;
+}
+/* Оформление блока ответов */
+.replies {
+  margin-top: 10px;
+  padding-left: 10px;
+  border-left: 2px dashed #ddd;
+}
+.reply {
+  background-color: #fefefe;
+  border: 1px solid #ddd;
+  border-radius: 15px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+.reply-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.reply-header img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+.reply-header a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+  cursor: pointer;
+}
+.reply-body {
+  padding: 6px;
+  background-color: #fff;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+.reply-actions {
+  margin-top: 5px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.reply-actions .action-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.reply-actions .action-btn:hover {
+  opacity: 0.8;
+}
+
+/* Тёмная тема для окна комментариев */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #fff;
+  }
+  .video-container {
+    background: #333;
+  }
+  .reply
+  {
+    background: #333;
+    
+  }
+  .overlay {
+    background: rgba(0, 0, 0, 0.8);
+  }
+  .reaction-buttons button,
+  .subscription-buttons button {
+    background-color: #333;
+    color: #fff;
+  }
+  #comments-container {
+    background: #222;
+    border-left: 1px solid #444;
+    color: #fff;
+  }
+  .reply-header
+    {
+        background-color: #313131;
+    }
+    .overlay {
+      background: rgba(0, 0, 0, 0.8);
+    }
+  .comment {
+    background-color: #333;
+    border: 1px solid #444;
+  }
+  .comment-header a,
+  .reply-header a {
+    color: #66aaff;
+  }
+  .comment-body, .reply-body {
+    background-color: #444;
+    border: 1px solid #555;
+  }
+}
+/* Плавное появление элементов */
+.fade-in {
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+.fade-in.visible {
+  opacity: 1;
+}
+.video-container{
+    margin-top: 5%;
+}

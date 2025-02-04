@@ -1,0 +1,223 @@
+    /* Общие стили для белой темы */
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        overflow-x: hidden;
+      }
+      header {
+        /* Предполагается, что header.php задаёт свою высоту и стили */
+        z-index: 3000;
+        position: relative;
+      }
+      .main-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: transform 0.5s ease;
+        /* По умолчанию занимаем всю ширину */
+        width: 100%;
+      }
+      /* Когда окно комментариев открыто – сдвигаем контент влево */
+      .with-comments {
+        transform: translateX(-33.33%);
+      }
+      .video-container {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+        border-radius: 15px;
+        overflow: hidden;
+        background: #000;
+        margin: 0 auto; /* Центрируем по горизонтали */
+      }
+      video {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .overlay {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        color: white;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 14px;
+        line-height: 1.4;
+        box-shadow: 0 0 22px rgba(0, 0, 0, 0.5);
+      }
+      .reaction-buttons {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .reaction-buttons button {
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px 15px;
+        font-size: 14px;
+        cursor: pointer;
+        width: 100px;
+        transition: background-color 0.2s ease;
+      }
+      .subscription-buttons button{
+        background-color: #f0f0f0;
+      }
+      .reaction-buttons button:hover {
+        background-color: #e0e0e0;
+      }
+      /* Эффект "дождя" остаётся прежним */
+      #reaction-rain-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 1000;
+      }
+      /* Кнопка для открытия комментариев */
+      #open-comments-btn {
+        position: fixed;
+        top: 20%;
+        right: 10px;
+        z-index: 2500;
+        padding: 10px 15px;
+        background-color: #ffffff;
+        color: #000000;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      /* Окно комментариев */
+      #comments-container {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 33.33%; /* 1/3 ширины экрана */
+        height: 100%;
+        background: #fff;
+        border-left: 1px solid #ccc;
+        padding: 60px 10px 10px 10px; /* учтена высота header */
+        box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+        z-index: 2000;
+        transform: translateX(100%);
+        transition: transform 0.5s ease;
+        overflow-y: auto;
+      }
+      /* Когда комментарии открыты, контейнер сдвигается в видимую область */
+      #comments-container.visible {
+        transform: translateX(0);
+      }
+      #comments-container h3 {
+        margin-top: 0;
+      }
+      #comments-container form textarea {
+        width: 100%;
+        height: 60px;
+        resize: vertical;
+        margin-bottom: 5px;
+      }
+      #comments-container form button {
+        padding: 5px 10px;
+      }
+      .comment {
+        border-bottom: 1px solid #eee;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+      }
+      .comment .comment-actions button {
+        margin-right: 5px;
+        font-size: 0.9rem;
+      }
+      .replies {
+        margin-left: 15px;
+        margin-top: 5px;
+      }
+      .reply {
+        border-bottom: 1px dashed #ddd;
+        padding-bottom: 3px;
+        margin-bottom: 3px;
+      }
+      .reply form textarea {
+        height: 40px;
+      }
+      /* Остальные стили (например, для play-pause, progress-bar и glow-on-hover) остаются без изменений */
+      .play-pause-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+        cursor: pointer;
+      }
+      .progress-bar-container {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: #333;
+        overflow: hidden;
+      }
+      .progress-bar {
+        width: 0;
+        height: 100%;
+        background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+        transition: width 0.1s linear;
+      }
+      .bottom-space {
+        height: 100px;
+      }
+      /* Плавное появление элементов */
+      .fade-in {
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+      }
+      .fade-in.visible {
+        opacity: 1;
+      }
+      /* Стили для тёмной темы (если применимо) */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #121212;
+          color: #fff;
+        }
+        .video-container {
+          background: #333;
+          transform: scale(1.2);
+        }
+        .reply-body
+        {
+            background-color: #393939;
+        }
+        .reply-header
+        {
+            background-color: #313131;
+        }
+        .overlay {
+          background: rgba(0, 0, 0, 0.8);
+        }
+        .reaction-buttons button {
+          background-color: #333;
+          border: 1px solid #444;
+          color: #fff;
+        }
+        #open-comments-btn{
+            background-color: #333;
+            color: #ffffff;
+        }
+        .reaction-buttons button:hover {
+          background-color: #444;
+        }
+        #comments-container {
+          background: #222;
+          border-left: 1px solid #444;
+          color: #fff;
+        }
+      }
