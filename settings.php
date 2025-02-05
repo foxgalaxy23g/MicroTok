@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: sessions.php");
     }
     if (isset($_POST['exit_account'])) {
-        header("Location: warning.php");
+        header("Location: exit.php");
     }
 }
 ?>
@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <?php 
-        include("header.php"); 
+        include("header_old.php"); 
     ?>
     <h1>Settings</h1>
     

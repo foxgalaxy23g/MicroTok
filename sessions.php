@@ -86,7 +86,7 @@ $tokens = getUserTokens($conn, $user_id);
 </head>
 <body>
     <?php 
-        include("header.php"); 
+        include("header_old.php"); 
     ?>
     <h2>Manage connected devices</h2>
     <?php if (isset($delete_message)): ?>

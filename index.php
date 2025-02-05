@@ -315,7 +315,7 @@ if (isset($_COOKIE['auth_token'])) {
                 <?php endif; ?>
                 <div style="display: flex;">
                     <?php if (isset($_SESSION['verification_sent']) && !isset($_COOKIE['auth_token'])): ?>
-                        <a href="exit.php" style="color: rgb(98, 0, 255); text-decoration: none; margin-right: 5%;">Exit from this account</a>
+                        <a href="exit.php?id=1" style="color: rgb(98, 0, 255); text-decoration: none; margin-right: 5%;">Exit from this account</a>
                     <?php endif; ?>
                     <a href="translate-activate.php" class="fade-in" style="color: rgb(98, 0, 255); text-decoration: none;">Activate translation by Google</a>
                 </div>

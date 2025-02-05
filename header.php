@@ -69,7 +69,7 @@
                 <i class="fas fa-video"></i> <a href="make.php">make video</a>
             </a>
             <a href="/logout">
-                <i class="fas fa-sign-out-alt"></i> <a href="warning.php">exit</a>
+                <i class="fas fa-sign-out-alt"></i> <a href="exit.php">exit</a>
             </a>
         </div>
     </header>
