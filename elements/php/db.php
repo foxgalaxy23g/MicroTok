@@ -10,7 +10,7 @@ $project_name = "MicroTok";
 $registration_open = "1";
 
 // Enable error reporting for debugging
-ini_set('display_errors', 0);
+ini_set('display_errors', 13);
 error_reporting(E_ALL);
 
 // Connect to database

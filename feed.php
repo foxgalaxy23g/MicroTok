@@ -157,10 +157,10 @@ function changeVideo() {
         <video id="video" src="<?php echo htmlspecialchars($video['path']); ?>" autoplay loop muted playsinline></video>
         <div class="overlay">
           <p>
-            <a href="profile.php?id=<?php echo $video['user_id']; ?>">
+            <a style="text-decoration: none;"href="profile.php?id=<?php echo $video['user_id']; ?>">
               <img src="<?php echo htmlspecialchars($avatar); ?>" alt="Avatar" style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover; vertical-align: middle;">
             </a>
-            <a href="profile.php?id=<?php echo $video['user_id']; ?>"><?php echo htmlspecialchars($username); ?></a>
+            <a style="text-decoration: none; color: #ffffff;" href="profile.php?id=<?php echo $video['user_id']; ?>"><?php echo htmlspecialchars($username); ?></a>
             (subs <?php echo $subscribers_count; ?>)
           </p>
           <p>Description: <?php echo htmlspecialchars($video['description']); ?></p>
@@ -187,7 +187,7 @@ function changeVideo() {
             👎<br>
             <span id="dislikes-count"><?php echo $dislikes; ?></span>
           </button>
-          <button id="open-comments-btn" style="border-radius: 50px; margin-top: 13.5vh; margin-right: -0.7vh;">C</button>
+          <button id="open-comments-btn" style="border-radius: 50px; margin-top: 300%; margin-right: -20%;">C</button>
         </form>
         <div class="subscription-buttons">
           <?php if ($is_subscribed > 0): ?>
@@ -516,7 +516,7 @@ function changeVideo() {
     let availableIds = <?php echo json_encode(array_values($ids)); ?>;
     let currentVideoId = <?php echo $video['id']; ?>;
   </script>
-  <h2>_</h2>
+  <h2 style="color: rgba(255, 255, 255, 0);">_</h2>
   <script src="elements/js/feed.js"></script>
   <script src="elements/js/safe.js"></script>
 </body>

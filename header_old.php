@@ -65,6 +65,6 @@
             </a>
         </div>
     </header>
-    <script src="elements/js/safe.js"></script>
+
 </body>
 </html>

@@ -82,6 +82,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
     <title>Upload video on <?php echo htmlentities($project_name); ?></title>
     <link rel="stylesheet" href="elements/css/make.css">
     <meta name="robots" content="noindex, nofollow">
+    <style>
+        .content input {
+          width: 98%;
+          justify-content: center
+        }
+        .content textarea {
+          width: 98%;
+          justify-content: center
+        }
+        .content button {
+          width: 98%;
+          justify-content: center
+        }
+    </style>
 </head>
 <body>
     <div class="header-container">
@@ -99,18 +113,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
         <a href="myvideos.php"><i>🎞</i>Manage videos</a>
         <a href="settings.php"><i>⚙</i>Settings</a> 
     </div>
-
     <div class="content">
+        <h1>^</h1>
         <h1>Upload Video</h1>
         <form method="post" enctype="multipart/form-data">
             <label>Select video (MP4, max 50 MB):</label>
             <input type="file" name="video" accept="video/mp4" required><br>
             <label>Video description:</label>
-            <textarea name="description" rows="4" required></textarea><br>
+            <textarea name="description" rows="4" style="text-align: center" required></textarea><br>
             <label>Upload cover image (JPG/PNG, max 10 MB):</label>
             <input type="file" name="cover_image" accept="image/jpeg, image/png" required><br>
             <label>Select theme:</label>
-            <select name="theme_id" required>
+            <select style="margin-bottom: 5vh;" name="theme_id" required>
                 <?php foreach ($themes as $theme): ?>
                     <option value="<?php echo $theme['id']; ?>"><?php echo htmlentities($theme['name']); ?></option>
                 <?php endforeach; ?>

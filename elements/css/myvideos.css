@@ -5,6 +5,10 @@ body {
     padding: 0;
 }
 
+body, html {
+    overflow: hidden;
+  }
+  
 /* Заголовок */
 h1 {
     color: rgb(98, 0, 255);

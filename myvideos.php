@@ -1,7 +1,6 @@
 <?php
 include("elements/php/db.php");
 include("elements/php/closed.php");
-
 include("elements/php/verify.php");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_POST['description'])) {
@@ -87,7 +86,7 @@ if (isset($_GET['delete_video_id'])) {
     }
 }
 
-$sql = "SELECT id, path, description FROM videos WHERE user_id = ?";
+$sql = "SELECT id, cover_image_path, description FROM videos WHERE user_id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
@@ -100,16 +99,12 @@ $result = $stmt->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlentities($project_name); ?> Studio</title>
-    <style>
-    </style>
     <link rel="stylesheet" href="elements/css/myvideos.css">
     <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
     <div class="header-container">
-        <?php
-            include("header.php");
-        ?>
+        <?php include("header.php"); ?>
     </div>
     <noscript>
         <meta http-equiv="refresh" content="0; url=/javascript.html">
@@ -122,36 +117,39 @@ $result = $stmt->get_result();
     </div>
 
     <div class="content">
-        <h1>^</h1>
+        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
         <h1>My Videos</h1>
-        <table>
+        <table style="border-radius: 15px;" >
             <tr>
-                <th>Video</th>
+                <th>Video Preview</th>
                 <th>Description</th>
                 <th>Actions</th>
             </tr>
             <?php while ($row = $result->fetch_assoc()) : ?>
                 <tr>
                     <td>
-                        <video width="200" controls>
-                            <source src="<?php echo htmlspecialchars($row['path']); ?>" type="video/mp4">
-                        </video>
+                        <a href="feed.php?id=<?php echo $row['id']; ?>">
+                            <img src="<?php echo htmlspecialchars($row['cover_image_path']); ?>" alt="<?php echo htmlspecialchars($row['cover_image_path']); ?>" width="200" style="border-radius: 15px; vertical-align: middle;">
+                        </a>
                     </td>
                     <td>
                         <form method="post" style="display:inline;">
-                            <textarea name="new_description" rows="2" cols="30" required><?php echo htmlspecialchars($row['description']); ?></textarea>
+                            <textarea name="new_description" rows="23" cols="30" style="resize: none; border-radius: 15px; vertical-align: middle;" required><?php echo htmlspecialchars($row['description']); ?></textarea>
                             <input type="hidden" name="video_id" value="<?php echo $row['id']; ?>">
-                            <button type="submit" name="update_description">Update Description</button>
+                            <button type="submit" name="update_description" style="border-radius: 15px; vertical-align: middle;">Update Description</button>
                         </form>
                     </td>
                     <td>
                         <a href="?delete_video_id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure you want to delete this video?')">
-                            <button>Delete</button>
+                            <button style="border-radius: 15px; vertical-align: middle;">Delete</button>
                         </a>
                     </td>
                 </tr>
             <?php endwhile; ?>
         </table>
+        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
+        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
+        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
     </div>
 </body>
 </html>
