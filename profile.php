@@ -1,8 +1,6 @@
 <?php
-include("elements/php/db.php");
-include("elements/php/closed.php");
-
-include("elements/php/verify.php");
+include("elements/php/main/db.php");
+include("elements/php/main/verify.php");
 
 $user_id = isset($_GET['id']) ? (int)$_GET['id'] : authenticate($conn); // Проверка, задан ли user_id в URL
 
@@ -175,7 +173,7 @@ if ($result->num_rows > 0) {
 
     </style>
 </head>
-<?php include("header.php"); ?>
+<?php include("elements/php/blocks/header.php"); ?>
 
     <div class="profile-page">
         <h1>Страница пользователя <?php echo htmlentities($username, ENT_QUOTES, 'UTF-8'); ?></h1>

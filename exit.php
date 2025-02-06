@@ -1,5 +1,5 @@
 <?php
-include("elements/php/db.php");
+include("elements/php/main/db.php");
 
 // Начинаем сессию
 session_start();
@@ -83,10 +83,9 @@ if (isset($_GET['id'])) {
 ?>
 
 <?php 
-include("elements/php/translator.php"); 
-include("elements/php/cursor.php");
-include("elements/php/db.php");
-include("elements/php/closed.php");
+include("elements/php/main/translator.php"); 
+include("elements/php/main/cursor.php");
+include("elements/php/main/db.php");
 
 if (!isset($_COOKIE['auth_token'])) {
     header("Location: index.php");

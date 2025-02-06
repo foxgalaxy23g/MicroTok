@@ -1,7 +1,6 @@
 <?php
-include("elements/php/db.php");
-include("elements/php/closed.php");
-include("elements/php/verify.php");
+include("elements/php/main/db.php");
+include("elements/php/main/verify.php");
 
 // Получаем список доступных тем
 $sql = "SELECT id, name FROM themes";
@@ -100,8 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
 <body>
     <div class="header-container">
         <?php 
-        include("header_old.php"); 
-        include("elements/php/closed.php");
+        include("elements/php/blocks/header_old.php"); 
         ?>
     </div>
     <noscript>

@@ -1,8 +1,7 @@
 <?php
-include("elements/php/translator.php");
-include("elements/php/db.php");
-include("elements/php/cursor.php");
-include("elements/php/closed.php");
+include("elements/php/main/translator.php");
+include("elements/php/main/db.php");
+include("elements/php/main/cursor.php");
 
 $project_decsi = "Social media made by no name furry just for fun";
 
@@ -282,7 +281,7 @@ if (isset($_COOKIE['auth_token'])) {
             transform: translateY(-50%);
             width: 20px;
             height: 20px;
-            border-radius: 15px;
+            border-radius: 5px;
             background-color: #ccc;
         }
     </style>

@@ -1,7 +1,6 @@
 <?php
-include("elements/php/db.php");
-include("elements/php/closed.php");
-include("elements/php/verify.php");
+include("elements/php/main/db.php");
+include("elements/php/main/verify.php");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_POST['description'])) {
     $video = $_FILES['video'];
@@ -104,7 +103,7 @@ $result = $stmt->get_result();
 </head>
 <body>
     <div class="header-container">
-        <?php include("header.php"); ?>
+        <?php include("elements/php/blocks/header.php"); ?>
     </div>
     <noscript>
         <meta http-equiv="refresh" content="0; url=/javascript.html">
@@ -147,6 +146,10 @@ $result = $stmt->get_result();
                 </tr>
             <?php endwhile; ?>
         </table>
+        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
+        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
+        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
+        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
         <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
         <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
         <h1 style="color: rgba(255, 255, 255, 0);">^</h1>

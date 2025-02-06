@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="elements/css/settings.css">
 </head>
 <body>
-    <?php include("elements/php/closed.php"); ?>
+    <?php include("elements/php/main/db.php"); ?>
     <noscript>
         <meta http-equiv="refresh" content="0; url=/javascript.html">
     </noscript>

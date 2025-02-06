@@ -1,8 +1,7 @@
 <?php
-include("elements/php/db.php");
-include("elements/php/closed.php");
-include("elements/php/verify.php");
-include("elements/php/api1.php");
+include("elements/php/main/db.php");
+include("elements/php/main/verify.php");
+include("elements/php/main/api1.php");
 // ==================================================================
 // Загрузка видео и данных для отображения страницы
 // ==================================================================
@@ -29,7 +28,7 @@ if ($video_id && in_array($video_id, $ids)) {
         header("Location: ?id=" . $random_id);
         exit;
     } else {
-        include("header.php");
+        include("elements/php/blocks/header.php");
         echo "<h1>" . htmlentities($project_name) . " has no video at all</h1>";
         echo "<p>But you can publish the video first on this platform!</p>";
         echo "<a href='make.php'>upload first video</a>";
@@ -140,7 +139,7 @@ function changeVideo() {
   <meta name="description" content="Watch <?php echo htmlentities(mb_strimwidth($video['description'], 0, 150, '...'), ENT_QUOTES, 'UTF-8'); ?> by <?php echo htmlentities($username, ENT_QUOTES, 'UTF-8'); ?> in MicroTok">
 </head>
 <body>
-  <?php include("header.php"); ?>
+  <?php include("elements/php/blocks/header.php"); ?>
   <h2 style="color: rgba(98, 0, 255, 0);">^</h2>
 
   <!-- Кнопка для открытия/закрытия комментариев (отдельно от кнопок лайка/дизлайка) -->
@@ -500,7 +499,7 @@ function changeVideo() {
 
 function changeVideo() {
     $.ajax({
-        url: 'change_video.php',
+        url: 'elements/php/main/change_video.php',
         type: 'POST',
         data: { current_video_id: currentVideoId },
         success: function(response) {

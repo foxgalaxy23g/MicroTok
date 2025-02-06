@@ -1,12 +1,11 @@
 <?php 
-include("elements/php/translator.php"); 
-include("elements/php/cursor.php");
-include("elements/php/db.php");
-include("elements/php/closed.php");
+include("elements/php/main/translator.php"); 
+include("elements/php/main/cursor.php");
+include("elements/php/main/db.php");
 ?>
 
 <?php
-    include("elements/php/verify.php");
+    include("elements/php/main/verify.php");
 
     // Удаление аккаунта
     if (isset($_POST['delete_account'])) {

@@ -1,7 +1,7 @@
 <?php
-include("elements/php/translator.php");
-include("elements/php/db.php");
-include("elements/php/cursor.php");
+include("elements/php/main/translator.php");
+include("elements/php/main/db.php");
+include("elements/php/main/cursor.php");
 
 if($server_open_now == "1")
 {
@@ -22,7 +22,7 @@ if($server_open_now == "1")
     <noscript>
         <meta http-equiv="refresh" content="0; url=/javascript.html">
     </noscript>
-    <?php include("header_old.php"); ?>
+    <?php include("elements/php/blocks/header_old.php"); ?>
     <h1>Warning! <?php echo($project_name); ?> is currently closed!</h1>
     <p>Please try again later.</p>
     

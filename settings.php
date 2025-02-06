@@ -1,7 +1,6 @@
 <?php
-require_once 'elements/php/db.php'; 
-include("elements/php/closed.php");
-include("elements/php/verify.php");
+require_once 'elements/php/main/db.php'; 
+include("elements/php/main/verify.php");
 
 // Получаем данные пользователя
 $query = "SELECT * FROM users WHERE id = ?";
@@ -97,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <?php 
-        include("header_old.php"); 
+        include("elements/php/blocks/header_old.php"); 
     ?>
     <h1>Settings</h1>
     
