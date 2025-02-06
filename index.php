@@ -244,6 +244,8 @@ if (isset($_COOKIE['auth_token'])) {
         } else {
             // Токен не найден
             echo "Token not valid.";
+            header('Location: exit.php?id=1');
+            exit();
         }
     } else {
         // Ошибка в подготовке запроса
