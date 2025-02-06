@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Фев 04 2025 г., 19:44
+-- Время создания: Фев 06 2025 г., 18:28
 -- Версия сервера: 8.0.30
 -- Версия PHP: 8.1.9
 
@@ -84,6 +84,21 @@ CREATE TABLE `themes` (
   `name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+--
+-- Дамп данных таблицы `themes`
+--
+
+INSERT INTO `themes` (`id`, `name`) VALUES
+(4, 'Blog'),
+(7, 'Comedy'),
+(9, 'Furry'),
+(3, 'Gaming'),
+(1, 'IT'),
+(6, 'Music'),
+(2, 'News'),
+(8, 'Politics'),
+(5, 'Since(Education)');
+
 -- --------------------------------------------------------
 
 --
@@ -97,6 +112,13 @@ CREATE TABLE `users` (
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'uploads/avatars/classic-avava.png',
   `email` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Дамп данных таблицы `users`
+--
+
+INSERT INTO `users` (`id`, `username`, `password`, `avatar`, `email`) VALUES
+(1, 'Administrator', '$2y$10$5E9YYvNIbvL3rGUAVrVwpO/0XPf7DUxYEJ1xNE.gl0aQSiz.DzHE6', 'uploads/avatars/classic-avava.png', '');
 
 -- --------------------------------------------------------
 
@@ -136,7 +158,7 @@ CREATE TABLE `videos` (
 --
 
 INSERT INTO `videos` (`id`, `user_id`, `path`, `description`, `upload_time`, `cover_image_path`, `theme_id`) VALUES
-(3, 1, 'uploads/videos/67a231e82721f.mp4', 'furry', '2025-02-04 18:27:36', 'uploads/covers/67a231e82edf2.png', 8);
+(1, 1, 'uploads/videos/TESTVIDEO.mp4', 'Hello World(Me at the zoo)', '2025-02-06 18:24:36', 'uploads/covers/TESTVIDEO.png', 1);
 
 -- --------------------------------------------------------
 
@@ -150,6 +172,13 @@ CREATE TABLE `video_likes` (
   `user_id` int NOT NULL,
   `reaction` enum('like','dislike') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Дамп данных таблицы `video_likes`
+--
+
+INSERT INTO `video_likes` (`id`, `video_id`, `user_id`, `reaction`) VALUES
+(6, 1, 1, 'like');
 
 --
 -- Индексы сохранённых таблиц
@@ -248,31 +277,31 @@ ALTER TABLE `comment_replies`
 -- AUTO_INCREMENT для таблицы `themes`
 --
 ALTER TABLE `themes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблицы `user_tokens`
 --
 ALTER TABLE `user_tokens`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблицы `videos`
 --
 ALTER TABLE `videos`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблицы `video_likes`
 --
 ALTER TABLE `video_likes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
