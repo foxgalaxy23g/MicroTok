@@ -11,33 +11,49 @@ while ($row = $result->fetch_assoc()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_FILES['cover_image']) && isset($_POST['description']) && isset($_POST['theme_id'])) {
+    // Проверка: не превышено ли ограничение в 3 видео в сутки для пользователя
+    $stmt = $conn->prepare("SELECT COUNT(*) AS count FROM videos WHERE user_id = ? AND DATE(upload_time) = CURDATE()");
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $resultCount = $stmt->get_result();
+    $row = $resultCount->fetch_assoc();
+    $stmt->close();
+
+    if ($row['count'] >= 3) {
+        echo "<script>
+                alert('We cannot upload more than 3 videos in one day. Please try again later.');
+                window.location.href = 'myvideos.php';
+              </script>";
+        exit;
+    }    
+
     $video = $_FILES['video'];
     $description = trim($_POST['description']);
     $coverImage = $_FILES['cover_image'];
     $theme_id = intval($_POST['theme_id']);
 
     if (empty($description)) {
-        die("Video description is required.");
+        die("Описание видео обязательно.");
     }
 
     if ($video['type'] !== 'video/mp4') {
-        die("Invalid video format. Only MP4 is allowed.");
+        die("Неверный формат видео. Разрешён только MP4.");
     }
 
     if ($video['size'] > 50 * 1024 * 1024) {
-        die("Video file size exceeds 50 MB.");
+        die("Размер файла видео превышает 50 МБ.");
     }
 
     if (empty($coverImage['name'])) {
-        die("Cover image is required.");
+        die("Обложка обязательна.");
     }
 
     if (!in_array($coverImage['type'], ['image/jpeg', 'image/png'])) {
-        die("Invalid cover image format. Only JPG and PNG are allowed.");
+        die("Неверный формат обложки. Разрешены JPG и PNG.");
     }
 
     if ($coverImage['size'] > 10 * 1024 * 1024) {
-        die("Cover image size must be at least 10 MB.");
+        die("Размер обложки не должен превышать 10 МБ.");
     }
 
     $uploadDir = 'uploads/videos/';
@@ -47,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
 
     $videoPath = $uploadDir . uniqid() . ".mp4";
     if (!move_uploaded_file($video['tmp_name'], $videoPath)) {
-        die("Video upload failed.");
+        die("Не удалось загрузить видео.");
     }
 
     $coverImageDir = 'uploads/covers/';
@@ -60,16 +76,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
     $coverImagePath = $coverImageDir . $coverImageName;
 
     if (!move_uploaded_file($coverImage['tmp_name'], $coverImagePath)) {
-        die("Cover image upload failed.");
+        die("Не удалось загрузить обложку.");
     }
 
     $sql = "INSERT INTO videos (user_id, path, description, upload_time, cover_image_path, theme_id) VALUES (?, ?, ?, NOW(), ?, ?)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('isssi', $user_id, $videoPath, $description, $coverImagePath, $theme_id);
     $stmt->execute();
+
+    // Получаем ID загруженного видео
+    $uploadedVideoId = $conn->insert_id;
     $stmt->close();
 
-    echo "Video uploaded successfully with cover image and theme.";
+    header("Location: feed.php?id=" . $uploadedVideoId);
+    exit;
 }
 ?>
 
@@ -84,15 +104,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
     <style>
         .content input {
           width: 98%;
-          justify-content: center
+          justify-content: center;
         }
         .content textarea {
           width: 98%;
-          justify-content: center
+          justify-content: center;
         }
         .content button {
           width: 98%;
-          justify-content: center
+          justify-content: center;
         }
     </style>
 </head>
