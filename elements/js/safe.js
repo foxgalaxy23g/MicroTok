@@ -27,14 +27,22 @@
     });
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
-            e.preventDefault();
-            alert("Инструменты разработчика запрещены!");
-        }
-    });
-})();
-document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+                alert("Инструменты разработчика запрещены!");
+            }
+
+            const forbiddenCharacters = /[{}:><?"|\[\];/~]/;
+            const inputValue = event.target.value;
+            
+            if (forbiddenCharacters.test(inputValue)) {
+                event.target.value = inputValue.replace(forbiddenCharacters, "");
+            }
+        });
+    })();
+    document.addEventListener('keydown', (e) => {
     if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'U')) {
         e.preventDefault();
     }
+    
 });
