@@ -36,5 +36,6 @@ $x_admin = "https://x.com/foxgalaxy23";
 $th_admin = "https://t.me/lisisamp";
 $yt_admin = "https://www.youtube.com/@foxgalaxy23";
 $gh_admin = "https://github.com/foxgalaxy23g/MicroTok";
+$mail_admin = "mihabear4@gmail.com";
 $company_developer = "FoxGalaxy23";
 ?>

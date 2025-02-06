@@ -1,11 +1,9 @@
 <?php
-include("elements/php/main/db.php");
-include("elements/php/main/verify.php");
+session_start();
+// Подключаем API (в котором уже происходит аутентификация)
 include("elements/php/main/api1.php");
-// ==================================================================
-// Загрузка видео и данных для отображения страницы
-// ==================================================================
 
+// Загрузка списка видео
 $ids = [];
 $sql = "SELECT id FROM videos";
 $result = $conn->query($sql);
@@ -15,7 +13,7 @@ if ($result->num_rows > 0) {
     }
 }
 
-$video_id = isset($_GET['id']) ? $_GET['id'] : null;
+$video_id = isset($_GET['id']) ? (int) $_GET['id'] : null;
 if ($video_id && in_array($video_id, $ids)) {
     $sql = "SELECT * FROM videos WHERE id = ?";
     $stmt = $conn->prepare($sql);
@@ -38,16 +36,19 @@ if ($video_id && in_array($video_id, $ids)) {
 
 if ($result->num_rows > 0) {
     $video = $result->fetch_assoc();
-    $user_id = $video['user_id'];
+    // Сохраняем идентификатор владельца видео в отдельной переменной
+    $video_owner_id = $video['user_id'];
+    
     $sql = "SELECT username, avatar FROM users WHERE id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $user_id);
+    $stmt->bind_param("i", $video_owner_id);
     $stmt->execute();
     $user_result = $stmt->get_result();
     $user_data = $user_result->num_rows > 0 ? $user_result->fetch_assoc() : null;
     $username = $user_data ? $user_data['username'] : 'Unknown User';
     $avatar = $user_data ? $user_data['avatar'] : 'default-avatar.jpg';
 
+    // Получаем данные о лайках/дизлайках видео
     $sql = "SELECT 
                 SUM(CASE WHEN reaction = 'like' THEN 1 ELSE 0 END) AS likes,
                 SUM(CASE WHEN reaction = 'dislike' THEN 1 ELSE 0 END) AS dislikes
@@ -59,17 +60,22 @@ if ($result->num_rows > 0) {
     $stmt->fetch();
     $stmt->close();
 
+    // Получаем идентификатор текущего (авторизованного) пользователя
+    $current_user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+    
+    // Проверяем, подписан ли текущий пользователь на канал владельца видео
     $sql = "SELECT COUNT(*) FROM subscriptions WHERE user_id = ? AND channel_id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ii", $user_id, $video['user_id']);
+    $stmt->bind_param("ii", $current_user_id, $video_owner_id);
     $stmt->execute();
     $stmt->bind_result($is_subscribed);
     $stmt->fetch();
     $stmt->close();
 
+    // Количество подписчиков канала (владельца видео)
     $sql = "SELECT COUNT(*) FROM subscriptions WHERE channel_id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $video['user_id']);
+    $stmt->bind_param("i", $video_owner_id);
     $stmt->execute();
     $stmt->bind_result($subscribers_count);
     $stmt->fetch();
@@ -78,88 +84,51 @@ if ($result->num_rows > 0) {
     echo "<p>Видео не найдено.</p>";
     exit;
 }
-
-function changeVideo() {
-  global $conn, $video_id;
-
-  // 1. Получаем текущую тему видео
-  $sql = "SELECT theme_id FROM videos WHERE id = ?";
-  $stmt = $conn->prepare($sql);
-  $stmt->bind_param("i", $video_id);
-  $stmt->execute();
-  $stmt->bind_result($theme_id);
-  $stmt->fetch();
-  $stmt->close();
-
-  // 2. Ищем видео из той же темы, что и текущее, или самое популярное, если нет тем
-  $sql = "
-      SELECT v.id FROM videos v 
-      LEFT JOIN video_likes vl ON v.id = vl.video_id
-      WHERE v.theme_id = ? AND v.id != ? 
-      GROUP BY v.id 
-      ORDER BY COUNT(vl.id) DESC 
-      LIMIT 1";
-  $stmt = $conn->prepare($sql);
-  $stmt->bind_param("ii", $theme_id, $video_id);
-  $stmt->execute();
-  $stmt->bind_result($next_video_id);
-  $stmt->fetch();
-  $stmt->close();
-
-  // 3. Если нет видео из той же темы, показываем случайное
-  if (!$next_video_id) {
-      $sql = "SELECT id FROM videos WHERE id != ? ORDER BY RAND() LIMIT 1";
-      $stmt = $conn->prepare($sql);
-      $stmt->bind_param("i", $video_id);
-      $stmt->execute();
-      $stmt->bind_result($next_video_id);
-      $stmt->fetch();
-      $stmt->close();
-  }
-
-  // 4. Переадресуем пользователя на следующее видео
-  if ($next_video_id) {
-      header("Location: ?id=" . $next_video_id);
-      exit;
-  }
-}
-
 ?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <title><?php echo htmlentities(mb_strimwidth($video['description'], 0, 60, '...'), ENT_QUOTES, 'UTF-8'); ?> - MicroTok</title>
-  <style>
-
-  </style>
   <link rel="stylesheet" href="elements/css/feed/feed.css">
   <link rel="stylesheet" href="elements/css/feed/feed2.css">
+  <style>
+    .progress-bar-container {
+  width: 100%;
+  height: 5px;
+  background: #ccc;
+  position: relative;
+  overflow: hidden;
+}
+.progress-bar {
+        width: 0;
+        height: 100%;
+        background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+        transition: width 0.1s linear;
+      }
+  </style>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <meta name="description" content="Watch <?php echo htmlentities(mb_strimwidth($video['description'], 0, 150, '...'), ENT_QUOTES, 'UTF-8'); ?> by <?php echo htmlentities($username, ENT_QUOTES, 'UTF-8'); ?> in MicroTok">
+  <style>
+    /* Пример простого стиля для комментариев */
+    #comments-container.visible { display: block; }
+    #comments-container { display: none; }
+  </style>
 </head>
 <body>
   <?php include("elements/php/blocks/header.php"); ?>
   <h2 style="color: rgba(98, 0, 255, 0);">^</h2>
-
-  <!-- Кнопка для открытия/закрытия комментариев (отдельно от кнопок лайка/дизлайка) -->
-
-  <!-- Контейнер для эффекта "дождя" -->
   <div id="reaction-rain-container"></div>
-
-  <!-- Основной контейнер с видео и реакциями -->
   <div class="main-container" id="main-content">
     <div>
-      <!-- Видео. При клике по видео переключается его состояние (play/pause) -->
       <div class="video-container" id="video-container">
-        <!-- Оборачиваем видео в ссылку на профиль автора только при клике по аватарке/нику -->
         <video id="video" src="<?php echo htmlspecialchars($video['path']); ?>" autoplay loop muted playsinline></video>
         <div class="overlay">
           <p>
-            <a style="text-decoration: none;"href="profile.php?id=<?php echo $video['user_id']; ?>">
-              <img src="<?php echo htmlspecialchars($avatar); ?>" alt="Avatar" style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover; vertical-align: middle;">
+            <a style="text-decoration: none;" href="profile.php?id=<?php echo $video_owner_id; ?>">
+              <img src="<?php echo htmlspecialchars($avatar); ?>" alt="Avatar" style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover;">
             </a>
-            <a style="text-decoration: none; color: #ffffff;" href="profile.php?id=<?php echo $video['user_id']; ?>"><?php echo htmlspecialchars($username); ?></a>
+            <a style="text-decoration: none; color: #ffffff;" href="profile.php?id=<?php echo $video_owner_id; ?>"><?php echo htmlspecialchars($username); ?></a>
             (subs <?php echo $subscribers_count; ?>)
           </p>
           <p>Description: <?php echo htmlspecialchars($video['description']); ?></p>
@@ -168,9 +137,8 @@ function changeVideo() {
           <div class="progress-bar"></div>
         </div>
       </div>
-
-      <!-- Блок с круглыми кнопками реакции (расположен справа от плеера) -->
       <div class="reaction-buttons">
+        <!-- Форма лайка -->
         <form method="post" id="like-form">
           <input type="hidden" name="video_id" value="<?php echo $video_id; ?>">
           <input type="hidden" name="action" value="like">
@@ -179,6 +147,7 @@ function changeVideo() {
             <span id="likes-count"><?php echo $likes; ?></span>
           </button>
         </form>
+        <!-- Форма дизлайка -->
         <form method="post" id="dislike-form">
           <input type="hidden" name="video_id" value="<?php echo $video_id; ?>">
           <input type="hidden" name="action" value="dislike">
@@ -186,19 +155,22 @@ function changeVideo() {
             👎<br>
             <span id="dislikes-count"><?php echo $dislikes; ?></span>
           </button>
+          <!-- Кнопка для показа комментариев -->
           <button id="open-comments-btn" style="border-radius: 50px; margin-top: 300%; margin-right: -20%;">C</button>
         </form>
         <div class="subscription-buttons">
           <?php if ($is_subscribed > 0): ?>
-            <form method="post">
+            <!-- Форма отписки -->
+            <form method="post" class="subscription-form" id="subscription-form">
               <input type="hidden" name="action" value="unsubscribe">
-              <input type="hidden" name="channel_id" value="<?php echo $video['user_id']; ?>">
+              <input type="hidden" name="channel_id" value="<?php echo $video_owner_id; ?>">
               <button type="submit">–</button>
             </form>
           <?php else: ?>
-            <form method="post">
+            <!-- Форма подписки -->
+            <form method="post" class="subscription-form" id="subscription-form">
               <input type="hidden" name="action" value="subscribe">
-              <input type="hidden" name="channel_id" value="<?php echo $video['user_id']; ?>">
+              <input type="hidden" name="channel_id" value="<?php echo $video_owner_id; ?>">
               <button type="submit">+</button>
             </form>
           <?php endif; ?>
@@ -206,8 +178,7 @@ function changeVideo() {
       </div>
     </div>
   </div>
-
-  <!-- Окно комментариев (изначально скрыто) -->
+  <!-- Блок комментариев -->
   <div id="comments-container">
     <h3>Комментарии</h3>
     <form id="comment-form">
@@ -215,59 +186,55 @@ function changeVideo() {
       <input type="hidden" name="video_id" value="<?php echo $video_id; ?>">
       <button type="submit">Отправить</button>
     </form>
-    <div id="comments-list">
-      <!-- Список комментариев подгружается AJAX-ом -->
-    </div>
+    <div id="comments-list"></div>
   </div>
-
-  <div class="bottom-space"></div>
-
+  <h2 style="color: rgba(98, 0, 255, 0);">^</h2>
+  <h2 style="color: rgba(98, 0, 255, 0);">^</h2>
   <script>
-    $(document).ready(function() {
-      let commentsVisible = false;
+  $(document).ready(function() {
+    // Обработка клика по кнопке показа/скрытия комментариев
+    let commentsVisible = false;
+    $('#open-comments-btn').click(function(e) {
+      e.preventDefault();
+      commentsVisible = !commentsVisible;
+      if (commentsVisible) {
+        $('#comments-container').addClass('visible');
+        $('#main-content').addClass('with-comments');
+        $(this).text('C');
+        loadComments();
+      } else {
+        $('#comments-container').removeClass('visible');
+        $('#main-content').removeClass('with-comments');
+        $(this).text('C');
+      }
+    });
 
-      // Открытие/закрытие окна комментариев
-      $('#open-comments-btn').click(function() {
-        commentsVisible = !commentsVisible;
-        if (commentsVisible) {
-          $('#comments-container').addClass('visible');
-          $('#main-content').addClass('with-comments');
-          $(this).text('C');
-          loadComments();
+    // Переключение воспроизведения видео (если клик не по ссылке)
+    $('#video-container').click(function(e) {
+      if ($(e.target).closest('a').length === 0) {
+        let video = $('#video').get(0);
+        if (video.paused) {
+          video.play();
         } else {
-          $('#comments-container').removeClass('visible');
-          $('#main-content').removeClass('with-comments');
-          $(this).text('C');
+          video.pause();
         }
-      });
+      }
+    });
 
-      // Переключение play/pause при клике по видео (но не при клике по ссылкам внутри overlay)
-      $('#video-container').click(function(e) {
-        // Если клик произошёл не по элементам с ссылками
-        if ($(e.target).closest('a').length === 0) {
-          let video = $('#video').get(0);
-          if (video.paused) {
-            video.play();
-          } else {
-            video.pause();
-          }
-        }
-      });
-
-      // Загрузка комментариев
-      function loadComments() {
-        $.ajax({
-          url: '',
-          type: 'POST',
-          data: {
-            load_comments: true,
-            video_id: <?php echo $video_id; ?>
-          },
-          success: function(response) {
-            let comments = JSON.parse(response);
-            $('#comments-list').empty();
-            comments.forEach(function(comment) {
-              let commentHtml = `
+    // AJAX-загрузка комментариев
+    function loadComments() {
+      $.ajax({
+        url: '', // текущий URL
+        type: 'POST',
+        data: {
+          load_comments: true,
+          video_id: <?php echo $video_id; ?>
+        },
+        success: function(response) {
+          let comments = JSON.parse(response);
+          $('#comments-list').empty();
+          comments.forEach(function(comment) {
+            let commentHtml = `
               <div class="comment" data-comment-id="${comment.id}">
                 <div class="comment-header">
                   <a href="profile.php?id=${comment.user_id}">
@@ -290,71 +257,113 @@ function changeVideo() {
                   <div class="reply-list" id="reply-list-${comment.id}"></div>
                 </div>
               </div>`;
-              $('#comments-list').append(commentHtml);
+            $('#comments-list').append(commentHtml);
+          });
+        }
+      });
+    }
+
+    // Обработка отправки нового комментария
+    $('#comment-form').submit(function(e) {
+      e.preventDefault();
+      let form = $(this);
+      $.ajax({
+        url: '', 
+        type: 'POST',
+        data: form.serialize(),
+        success: function(response) {
+          loadComments();
+          form.find('textarea').val('');
+        }
+      });
+    });
+
+    // Обработка лайка комментария
+    $(document).on('click', '.like-comment', function(e) {
+      e.preventDefault();
+      let commentId = $(this).data('comment-id');
+      $.ajax({
+        url: '',
+        type: 'POST',
+        data: {
+          comment_action: 'like',
+          comment_id: commentId
+        },
+        success: function(response) {
+          let data = JSON.parse(response);
+          $(`.comment[data-comment-id="${commentId}"] .like-comment span`).text(data.likes);
+          $(`.comment[data-comment-id="${commentId}"] .dislike-comment span`).text(data.dislikes);
+        }
+      });
+    });
+
+    // Обработка дизлайка комментария
+    $(document).on('click', '.dislike-comment', function(e) {
+      e.preventDefault();
+      let commentId = $(this).data('comment-id');
+      $.ajax({
+        url: '',
+        type: 'POST',
+        data: {
+          comment_action: 'dislike',
+          comment_id: commentId
+        },
+        success: function(response) {
+          let data = JSON.parse(response);
+          $(`.comment[data-comment-id="${commentId}"] .like-comment span`).text(data.likes);
+          $(`.comment[data-comment-id="${commentId}"] .dislike-comment span`).text(data.dislikes);
+        }
+      });
+    });
+
+    // Показ/скрытие ответов к комментарию
+    $(document).on('click', '.show-replies', function(e) {
+      e.preventDefault();
+      let commentId = $(this).data('comment-id');
+      let repliesContainer = $(`#replies-${commentId}`);
+      if (repliesContainer.is(':visible')) {
+        repliesContainer.hide();
+      } else {
+        $.ajax({
+          url: '',
+          type: 'POST',
+          data: {
+            load_replies: true,
+            comment_id: commentId
+          },
+          success: function(response) {
+            let replies = JSON.parse(response);
+            let html = '';
+            replies.forEach(function(reply) {
+              html += `<div class="reply">
+                          <div class="reply-header">
+                            <a href="profile.php?id=${reply.user_id}">
+                              <img src="${reply.avatar}" alt="Avatar">
+                            </a>
+                            <a href="profile.php?id=${reply.user_id}">${reply.username}</a>
+                            <small>${reply.created_at}</small>
+                          </div>
+                          <div class="reply-body">${reply.reply}</div>
+                        </div>`;
             });
+            $(`#reply-list-${commentId}`).html(html);
+            repliesContainer.show();
           }
         });
       }
+    });
 
-      // Отправка нового комментария
-      $('#comment-form').submit(function(e) {
-        e.preventDefault();
-        let form = $(this);
-        $.ajax({
-          url: '',
-          type: 'POST',
-          data: form.serialize(),
-          success: function(response) {
-            loadComments();
-            form.find('textarea').val('');
-          }
-        });
-      });
-
-      // Лайк комментария
-      $(document).on('click', '.like-comment', function() {
-        let commentId = $(this).data('comment-id');
-        $.ajax({
-          url: '',
-          type: 'POST',
-          data: {
-            comment_action: 'like',
-            comment_id: commentId
-          },
-          success: function(response) {
-            let data = JSON.parse(response);
-            $(`.comment[data-comment-id="${commentId}"] .like-comment span`).text(data.likes);
-            $(`.comment[data-comment-id="${commentId}"] .dislike-comment span`).text(data.dislikes);
-            createRain('👍');
-          }
-        });
-      });
-
-      // Дизлайк комментария
-      $(document).on('click', '.dislike-comment', function() {
-        let commentId = $(this).data('comment-id');
-        $.ajax({
-          url: '',
-          type: 'POST',
-          data: {
-            comment_action: 'dislike',
-            comment_id: commentId
-          },
-          success: function(response) {
-            let data = JSON.parse(response);
-            $(`.comment[data-comment-id="${commentId}"] .like-comment span`).text(data.likes);
-            $(`.comment[data-comment-id="${commentId}"] .dislike-comment span`).text(data.dislikes);
-          }
-        });
-      });
-
-      // Показать/скрыть ответы
-      $(document).on('click', '.show-replies', function() {
-        let commentId = $(this).data('comment-id');
-        let repliesContainer = $(`#replies-${commentId}`);
-        if (repliesContainer.is(':visible')) {
-          repliesContainer.hide();
-        } else {
+    // Обработка отправки ответа
+    $(document).on('submit', '.reply-form', function(e) {
+      e.preventDefault();
+      let form = $(this);
+      let commentId = form.data('comment-id');
+      $.ajax({
+        url: '',
+        type: 'POST',
+        data: form.serialize() + '&comment_id=' + commentId,
+        success: function(response) {
+          // После отправки ответа перезагружаем список ответов
           $.ajax({
             url: '',
             type: 'POST',
@@ -362,8 +371,8 @@ function changeVideo() {
               load_replies: true,
               comment_id: commentId
             },
-            success: function(response) {
-              let replies = JSON.parse(response);
+            success: function(resp) {
+              let replies = JSON.parse(resp);
               let html = '';
               replies.forEach(function(reply) {
                 html += `<div class="reply">
@@ -375,147 +384,146 @@ function changeVideo() {
                               <small>${reply.created_at}</small>
                             </div>
                             <div class="reply-body">${reply.reply}</div>
-                            <div class="reply-actions">
-                            </div>
                           </div>`;
               });
               $(`#reply-list-${commentId}`).html(html);
-              repliesContainer.show();
+              form.find('textarea').val('');
             }
           });
         }
       });
+    });
 
-      // Отправка ответа
-      $(document).on('submit', '.reply-form', function(e) {
-        e.preventDefault();
-        let form = $(this);
-        let commentId = form.data('comment-id');
-        $.ajax({
-          url: '',
-          type: 'POST',
-          data: form.serialize() + '&comment_id=' + commentId,
-          success: function(response) {
-            $.ajax({
-              url: '',
-              type: 'POST',
-              data: {
-                load_replies: true,
-                comment_id: commentId
-              },
-              success: function(resp) {
-                let replies = JSON.parse(resp);
-                let html = '';
-                replies.forEach(function(reply) {
-                  html += `<div class="reply">
-                              <div class="reply-header">
-                                <a href="profile.php?id=${reply.user_id}">
-                                  <img src="${reply.avatar}" alt="Avatar">
-                                </a>
-                                <a href="profile.php?id=${reply.user_id}">${reply.username}</a>
-                                <small>${reply.created_at}</small>
-                              </div>
-                              <div class="reply-body">${reply.reply}</div>
-                              <div class="reply-actions">
-                              </div>
-                            </div>`;
-                });
-                $(`#reply-list-${commentId}`).html(html);
-                form.find('textarea').val('');
-              }
-            });
-          }
-        });
-      });
-
-      // Обработчики для видео-лайков/дизлайков
-      $('#like-form').submit(function(e) {
-        e.preventDefault();
-        let form = $(this);
-        $.ajax({
-          url: '',
-          type: 'POST',
-          data: form.serialize(),
-          success: function(response) {
-            let data = JSON.parse(response);
-            $('#likes-count').text(data.likes);
-            $('#dislikes-count').text(data.dislikes);
-            createRain('👍');
-          }
-        });
-      });
-      $('#dislike-form').submit(function(e) {
-        e.preventDefault();
-        let form = $(this);
-        $.ajax({
-          url: '',
-          type: 'POST',
-          data: form.serialize(),
-          success: function(response) {
-            let data = JSON.parse(response);
-            $('#likes-count').text(data.likes);
-            $('#dislikes-count').text(data.dislikes);
-          }
-        });
-      });
-
-      // Эффект "дождя" для реакций (для видео, комментариев и ответов)
-      function createRain(symbol) {
-        for (let i = 0; i < 20; i++) {
-          let randX = Math.random() * $(window).width();
-          let randDuration = Math.random() * 5 + 4;
-          let size = Math.random() * 20 + 10;
-          let rainElement = $('<div>').text(symbol)
-            .css({
-              position: 'absolute',
-              top: '-50px',
-              left: randX + 'px',
-              fontSize: size + 'px',
-              opacity: 0.8,
-              color: 'rgba(0, 0, 0, 0.5)',
-              pointerEvents: 'none',
-              zIndex: 1000
-            })
-            .appendTo('#reaction-rain-container');
-          rainElement.animate({
-            top: $(window).height() + 'px',
-            opacity: 0
-          }, randDuration * 1000, 'linear', function() {
-            $(this).remove();
-          });
+    // Обработка отправки формы лайка видео
+    $('#like-form').submit(function(e) {
+      e.preventDefault();
+      let form = $(this);
+      $.ajax({
+        url: '',
+        type: 'POST',
+        data: form.serialize(),
+        success: function(response) {
+          let data = JSON.parse(response);
+          $('#likes-count').text(data.likes);
+          $('#dislikes-count').text(data.dislikes);
+          createRain('👍');
         }
+      });
+    });
+
+    // Обработка отправки формы дизлайка видео
+    $('#dislike-form').submit(function(e) {
+      e.preventDefault();
+      let form = $(this);
+      $.ajax({
+        url: '',
+        type: 'POST',
+        data: form.serialize(),
+        success: function(response) {
+          let data = JSON.parse(response);
+          $('#likes-count').text(data.likes);
+          $('#dislikes-count').text(data.dislikes);
+          createRain('👎');
+        }
+      });
+    });
+
+    // Обработка подписки/отписки
+    $('.subscription-form').submit(function(e) {
+      e.preventDefault();
+      let form = $(this);
+      $.ajax({
+        url: '',
+        type: 'POST',
+        data: form.serialize(),
+        success: function(response) {
+          let data = JSON.parse(response);
+          if(data.status === 'success'){
+            // Если подписка/отписка прошла успешно, можно изменить интерфейс
+            // Например, заменить содержимое формы (это пример, адаптируйте под свою логику)
+            if (form.find('input[name="action"]').val() === 'subscribe') {
+              form.find('input[name="action"]').val('unsubscribe');
+              form.find('button').text('-');
+              location.reload();
+            } else {
+              form.find('input[name="action"]').val('subscribe');
+              form.find('button').text('+');
+              location.reload();
+            }
+          }
+        }
+      });
+    });
+
+    // Функция эффекта "дождя" для реакций
+    function createRain(symbol) {
+      for (let i = 0; i < 20; i++) {
+        let randX = Math.random() * $(window).width();
+        let randDuration = Math.random() * 5 + 4;
+        let size = Math.random() * 20 + 10;
+        let rainElement = $('<div>').text(symbol)
+          .css({
+            position: 'absolute',
+            top: '-50px',
+            left: randX + 'px',
+            fontSize: size + 'px',
+            opacity: 0.8,
+            color: 'rgba(0, 0, 0, 0.5)',
+            pointerEvents: 'none',
+            zIndex: 1000
+          })
+          .appendTo('#reaction-rain-container');
+        rainElement.animate({
+          top: $(window).height() + 'px',
+          opacity: 0
+        }, randDuration * 1000, 'linear', function() {
+          $(this).remove();
+        });
+      }
+    }
+
+    // Автоматическая смена видео при прокрутке до низа страницы
+    $(window).on('scroll', function() {
+      const scrollPosition = $(window).scrollTop() + $(window).height();
+      const pageHeight = $(document).height();
+      if (scrollPosition >= pageHeight) {
+        changeVideo();
       }
     });
-    window.addEventListener('scroll', function() {
-  const scrollPosition = window.scrollY + window.innerHeight;
-  const pageHeight = document.documentElement.scrollHeight;
 
-  // Когда пользователь прокручивает до самого низа
-  if (scrollPosition >= pageHeight) {
-    // Здесь можно переключить на следующее видео (или предыдущие, если это нужно)
-    changeVideo();
-  }
-});
-
-function changeVideo() {
-    $.ajax({
+    function changeVideo() {
+      $.ajax({
         url: 'elements/php/main/change_video.php',
         type: 'POST',
         data: { current_video_id: currentVideoId },
         success: function(response) {
-            if (response) {
-                window.location.href = '?id=' + response;
-            }
+          if (response) {
+            window.location.href = '?id=' + response;
+          }
         }
-    });
-}
-
-  </script>
-  <script>
+      });
+    }
+    
     let availableIds = <?php echo json_encode(array_values($ids)); ?>;
     let currentVideoId = <?php echo $video['id']; ?>;
+  });
   </script>
-  <h2 style="color: rgba(255, 255, 255, 0);">_</h2>
+  <script>
+    $(document).ready(function() {
+  // Получаем элементы видео и прогрессбара
+  let video = document.getElementById('video');
+  let progressBar = document.querySelector('.progress-bar');
+
+  // При обновлении времени воспроизведения видео
+  video.addEventListener('timeupdate', function() {
+    if (video.duration) {
+      let percentage = (video.currentTime / video.duration) * 100;
+      progressBar.style.width = percentage + '%';
+    }
+  });
+});
+
+  </script>
   <script src="elements/js/feed.js"></script>
   <script src="elements/js/safe.js"></script>
 </body>
