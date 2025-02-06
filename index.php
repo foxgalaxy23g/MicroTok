@@ -29,52 +29,79 @@ function sendVerificationCode($email, $code, $ip_address, $user_agent, $project_
 
 session_start();
 
-
-// Обработка регистрации
-// Обработка регистрации
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_username'], $_POST['register_password'], $_POST['register_email']) && !isset($_SESSION['verification_sent'])) {
-    $username = $_POST['register_username'];
-    $password = password_hash($_POST['register_password'], PASSWORD_BCRYPT);
-    $email = $_POST['register_email'];
+    $username = trim($_POST['register_username']);
+    $rawPassword = $_POST['register_password'];
+    $email = trim($_POST['register_email']);
 
-    // Генерация случайного кода для верификации
-    $verificationCode = rand(100000, 999999);
-
-    // Вставка пользователя в таблицу users (без верификации)
-    $sql = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    if ($stmt) {
-        $stmt->bind_param('sss', $username, $password, $email);
-        
-        if ($stmt->execute()) {
-            // Получение IP и UserAgent
-            $ip_address = $_SERVER['REMOTE_ADDR'];
-            $user_agent = $_SERVER['HTTP_USER_AGENT'];
-
-            // Сохранение информации о токене в таблице user_tokens
-            $user_id = $conn->insert_id; // Получаем ID только что зарегистрированного пользователя
-            $token = bin2hex(random_bytes(16)); // Генерация токена
-            $sqlToken = "INSERT INTO user_tokens (user_id, token, verification_code, ip_address, user_agent) 
-                         VALUES (?, ?, ?, ?, ?)";
-            $stmtToken = $conn->prepare($sqlToken);
-            $stmtToken->bind_param('sssss', $user_id, $token, $verificationCode, $ip_address, $user_agent);
-            $stmtToken->execute();
-            $stmtToken->close();
-
-            // Отправка кода на email с помощью Python скрипта
-            sendVerificationCode($email, $verificationCode, $ip_address, $user_agent, $project_name);
-
-            // Переход к форме для ввода кода
-            $_SESSION['username'] = $username;
-            $_SESSION['verification_sent'] = true; // Флаг для отображения формы с кодом
-            header('Location: index.php');
-            exit();
-        } else {
-            $register_error = "This username is already used.";
+    // --- Валидация данных ---
+    // Проверка длины username (максимум 13 символов)
+    if (strlen($username) > 13) {
+        $register_error = "Username не должен превышать 13 символов.";
+    }
+    // Проверка на допустимые символы (только латинские буквы и цифры)
+    elseif (!preg_match("/^[a-zA-Z0-9]+$/", $username)) {
+        $register_error = "The username can only contain Latin letters and numbers.";
+    }
+    // Проверка длины пароля (минимум 8 символов)
+    elseif (strlen($rawPassword) < 8) {
+        $register_error = "The password must be at least 8 characters.";
+    }
+    // Проверка на существование email в базе данных
+    else {
+        $emailCheckSql = "SELECT id FROM users WHERE email = ?";
+        $emailStmt = $conn->prepare($emailCheckSql);
+        $emailStmt->bind_param('s', $email);
+        $emailStmt->execute();
+        $emailStmt->store_result();
+        if ($emailStmt->num_rows > 0) {
+            $register_error = "The specified email is already in use.";
         }
-        $stmt->close();
-    } else {
-        die("Error: " . $conn->error);
+        $emailStmt->close();
+    }
+
+    // Если ошибки не обнаружены, продолжаем регистрацию
+    if (!isset($register_error)) {
+        $password = password_hash($rawPassword, PASSWORD_BCRYPT);
+        // Генерация случайного кода для верификации
+        $verificationCode = rand(100000, 999999);
+
+        // Вставка пользователя в таблицу users (без верификации)
+        $sql = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param('sss', $username, $password, $email);
+            
+            if ($stmt->execute()) {
+                // Получение IP и UserAgent
+                $ip_address = $_SERVER['REMOTE_ADDR'];
+                $user_agent = $_SERVER['HTTP_USER_AGENT'];
+
+                // Сохранение информации о токене в таблице user_tokens
+                $user_id = $conn->insert_id;
+                $token = bin2hex(random_bytes(16));
+                $sqlToken = "INSERT INTO user_tokens (user_id, token, verification_code, ip_address, user_agent) 
+                             VALUES (?, ?, ?, ?, ?)";
+                $stmtToken = $conn->prepare($sqlToken);
+                $stmtToken->bind_param('sssss', $user_id, $token, $verificationCode, $ip_address, $user_agent);
+                $stmtToken->execute();
+                $stmtToken->close();
+
+                // Отправка кода на email с помощью Python скрипта
+                sendVerificationCode($email, $verificationCode, $ip_address, $user_agent, $project_name);
+
+                // Переход к форме для ввода кода
+                $_SESSION['username'] = $username;
+                $_SESSION['verification_sent'] = true;
+                header('Location: index.php');
+                exit();
+            } else {
+                $register_error = "This username is already used.";
+            }
+            $stmt->close();
+        } else {
+            die("Error: " . $conn->error);
+        }
     }
 }
 
@@ -236,6 +263,29 @@ if (isset($_COOKIE['auth_token'])) {
     <link rel="stylesheet" href="elements/css/index.css">
     <link rel="icon" href="elements/embeded/me/logo.png" type="image/x-icon"/>
     <meta name="description" content="<?php echo($project_decsi); ?>">
+    <style>
+        /* Стили для контейнера поля пароля с полоской */
+        .password-container {
+            position: relative;
+        }
+        /* Поле ввода пароля растягивается на 100% */
+        .password-container input {
+            width: 100%;
+            box-sizing: border-box;
+            padding-right: 50px; /* место для полоски */
+        }
+        /* Полоска надёжности пароля */
+        .password-strength {
+            position: absolute;
+            right: 5px;
+            top: 37%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 15px;
+            background-color: #ccc;
+        }
+    </style>
 </head>
 <body>
     <noscript>
@@ -250,31 +300,31 @@ if (isset($_COOKIE['auth_token'])) {
         <p id="by-text" style="color: rgb(255, 255, 255); font-weight: bold; font-size: 1.5em;">By <?php echo($company_developer); ?></p>
     </div>
 
-    <!-- Основной контент страницы (будет скрыт до окончания загрузки) -->
     <div id="main-content" style="display:none;">
         <div class="container">
             <div class="left-panel">
                 <?php
-                    // Проверка условий отображения формы регистрации
+                    // Форма регистрации показывается, если регистрация открыта и верификация не отправлена
                     if ($registration_open == "1") {
                         if (!isset($_SESSION['verification_sent'])) {
                             echo('<div class="form-container">');
                             echo('    <h1 class="fade-in">Register</h1>');
-                            ?>
-                            <?php if (isset($register_success)): ?>
-                                <p style="color: green;"><?php echo htmlspecialchars($register_success); ?></p>
-                            <?php endif; ?>
-                            <?php if (isset($register_error)): ?>
-                                <p style="color: red;"><?php echo htmlspecialchars($register_error); ?></p>
-                            <?php endif; ?>
-                            <?php
+                            if (isset($register_success)):
+                                echo('<p style="color: green;">'.htmlspecialchars($register_success).'</p>');
+                            endif;
+                            if (isset($register_error)):
+                                echo('<p style="color: red;">'.htmlspecialchars($register_error).'</p>');
+                            endif;
                             echo('    <form class="fade-in" method="post">');
                             echo('        <label for="register_username">Username:</label>');
                             echo('        <input type="text" id="register_username" name="register_username" required>');
                             echo('        <label for="register_email">Email:</label>');
                             echo('        <input type="email" id="register_email" name="register_email" required>');
                             echo('        <label for="register_password">Password:</label>');
-                            echo('        <input type="password" id="register_password" name="register_password" required>');
+                            echo('        <div class="password-container">');
+                            echo('            <input type="password" id="register_password" name="register_password" required oninput="checkPasswordStrength(this.value)">');
+                            echo('            <div id="password-strength" class="password-strength"></div>');
+                            echo('        </div>');
                             echo('        <button type="submit">Register</button>');
                             echo('    </form>');
                             echo('</div>');
@@ -282,7 +332,7 @@ if (isset($_COOKIE['auth_token'])) {
                     }
                 ?>
 
-                <!-- Форма входа, если код не был отправлен -->
+                <!-- Форма входа -->
                 <?php if (!isset($_SESSION['verification_sent'])): ?>
                     <div class="form-container">
                         <h1>Login</h1>
@@ -290,16 +340,14 @@ if (isset($_COOKIE['auth_token'])) {
                         <form method="post">
                             <label for="login_username" class="fade-in">Username:</label>
                             <input type="text" id="login_username" name="login_username" class="fade-in" required>
-
                             <label for="login_password" class="fade-in">Password:</label>
                             <input type="password" id="login_password" name="login_password" class="fade-in" required>
-
                             <button type="submit" class="fade-in">Login</button>
                         </form>
                     </div>
                 <?php endif; ?>
 
-                <!-- Форма верификации, если код был отправлен -->
+                <!-- Форма верификации -->
                 <?php if (isset($_SESSION['verification_sent']) && !isset($_COOKIE['auth_token'])): ?>
                     <div class="form-container">
                         <h1>Verify Your Account</h1>
@@ -330,6 +378,27 @@ if (isset($_COOKIE['auth_token'])) {
     </div>
 
     <script>
+        function checkPasswordStrength(password) {
+            var strengthBar = document.getElementById('password-strength');
+            var strength = 0;
+
+            // Примерный расчёт: увеличиваем силу за длину и разнообразие символов
+            if (password.length >= 8) strength += 1;
+            if (password.match(/[A-Z]/)) strength += 1;
+            if (password.match(/[a-z]/)) strength += 1;
+            if (password.match(/[0-9]/)) strength += 1;
+            if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
+
+            // Устанавливаем цвет полоски в зависимости от силы пароля
+            if (strength <= 2) {
+                strengthBar.style.backgroundColor = 'red';
+            } else if (strength === 3 || strength === 4) {
+                strengthBar.style.backgroundColor = 'yellow';
+            } else if (strength >= 5) {
+                strengthBar.style.backgroundColor = 'green';
+            }
+        }
+
         window.addEventListener('load', function () {
             // Задержка 2 секунды перед началом анимации
             setTimeout(function () {
