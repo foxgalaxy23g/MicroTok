@@ -150,5 +150,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
             <button type="submit">Upload</button>
         </form>
     </div>
+    <script src="elements/js/safe.js"></script>
 </body>
 </html>
