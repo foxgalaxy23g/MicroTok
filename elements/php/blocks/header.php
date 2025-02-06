@@ -123,9 +123,9 @@
         <img src="<?php echo $userAvatar; ?>" alt="User Avatar" id="userAvatar" class="user-avatar">
         <div id="userMenu" class="dropdown-menu" style="display: none; margin-left: -8vh;">
           <ul>
-            <li><a href="/profile.php">Профиль</a></li>
-            <li><a href="/settings.php">Настройки</a></li>
-            <li><a href="/logout.php">Выход</a></li>
+            <li><a href="/profile.php">Profile</a></li>
+            <li><a href="/settings.php">Settings</a></li>
+            <li><a href="/exit.php">Exit</a></li>
           </ul>
         </div>
       </div>
