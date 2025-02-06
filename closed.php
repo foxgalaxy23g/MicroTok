@@ -22,7 +22,7 @@ if($server_open_now == "1")
     <noscript>
         <meta http-equiv="refresh" content="0; url=/javascript.html">
     </noscript>
-    <?php include("header.php"); ?>
+    <?php include("header_old.php"); ?>
     <h1>Warning! <?php echo($project_name); ?> is currently closed!</h1>
     <p>Please try again later.</p>
     
