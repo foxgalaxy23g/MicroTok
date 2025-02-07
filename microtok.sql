@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Фев 07 2025 г., 18:07
+-- Время создания: Фев 07 2025 г., 21:12
 -- Версия сервера: 8.0.30
 -- Версия PHP: 8.1.9
 
@@ -123,7 +123,7 @@ CREATE TABLE `users` (
   `id` int NOT NULL,
   `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'elements/embeded/me/classic-avava.png',
+  `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'uploads/avatars/classic-avava.png',
   `email` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -171,6 +171,19 @@ CREATE TABLE `video_likes` (
   `video_id` int NOT NULL,
   `user_id` int NOT NULL,
   `reaction` enum('like','dislike') NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `video_views`
+--
+
+CREATE TABLE `video_views` (
+  `id` int NOT NULL,
+  `video_id` int NOT NULL,
+  `user_id` int DEFAULT NULL,
+  `viewed_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -252,6 +265,13 @@ ALTER TABLE `video_likes`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Индексы таблицы `video_views`
+--
+ALTER TABLE `video_views`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_video_id` (`video_id`);
+
+--
 -- AUTO_INCREMENT для сохранённых таблиц
 --
 
@@ -310,6 +330,12 @@ ALTER TABLE `video_likes`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT для таблицы `video_views`
+--
+ALTER TABLE `video_views`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- Ограничения внешнего ключа сохраненных таблиц
 --
 
@@ -346,6 +372,12 @@ ALTER TABLE `subscriptions`
 --
 ALTER TABLE `user_tokens`
   ADD CONSTRAINT `user_tokens_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `video_views`
+--
+ALTER TABLE `video_views`
+  ADD CONSTRAINT `video_views_ibfk_1` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
