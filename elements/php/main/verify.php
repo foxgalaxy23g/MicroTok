@@ -100,24 +100,18 @@ function scan_request_for_sql_injections() {
     return false;
 }
 
-// Если обнаружена попытка SQL-инъекции, прекращаем выполнение скрипта
-if (scan_request_for_sql_injections()) {
-    banUser($conn, $user_id, 'XSS attack detected', '-1');
-    exit('SQL injection attempt detected.');
-}
-
 // Функция для бана пользователя с датой разблокировки
 // Если $unlock_date равна '-1', значит бан перманентный
 function banUser($conn, $user_id, $reason = 'XSS attack detected', $unlock_date = '-1') {
     $stmt = $conn->prepare(
-        "INSERT INTO banned_users (user_id, ban_reason, banned_at, unlock_at) 
-         VALUES (?, ?, NOW(), ?) 
+        "INSERT INTO banned_users (id, user_id, ban_reason, banned_at, unlock_at) 
+         VALUES (?, ?, ?, NOW(), ?) 
          ON DUPLICATE KEY UPDATE 
              ban_reason = VALUES(ban_reason), 
              banned_at = VALUES(banned_at), 
              unlock_at = VALUES(unlock_at)"
     );
-    $stmt->bind_param("iss", $user_id, $reason, $unlock_date);
+    $stmt->bind_param("iiss", $user_id, $user_id, $reason, $unlock_date); // Notice the 'i' for id
     $stmt->execute();
     $stmt->close();
     header('Location: banned.php');
@@ -196,6 +190,12 @@ if (scan_request_for_xss()) {
         }
     }
     exit('XSS attempt detected.');
+}
+
+// Если обнаружена попытка SQL-инъекции, прекращаем выполнение скрипта
+if (scan_request_for_sql_injections()) {
+    banUser($conn, $user_id, 'XSS attack detected', '-1');
+    exit('SQL injection attempt detected.');
 }
 
 // Аутентифицируем пользователя и сохраняем его id в сессию
