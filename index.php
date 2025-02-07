@@ -1,4 +1,10 @@
 <?php
+session_start();
+require 'vendor/autoload.php'; // подключаем автозагрузчик Composer
+
+use Egulias\EmailValidator\EmailValidator;
+use Egulias\EmailValidator\Validation\RFCValidation;
+
 include("elements/php/main/translator.php");
 include("elements/php/main/db.php");
 include("elements/php/main/cursor.php");
@@ -25,10 +31,10 @@ function sendVerificationCode($email, $code, $ip_address, $user_agent, $project_
     error_log("Output: $output");
 }
 
-
-session_start();
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_username'], $_POST['register_password'], $_POST['register_email']) && !isset($_SESSION['verification_sent'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['register_username'], $_POST['register_password'], $_POST['register_email']) &&
+    !isset($_SESSION['verification_sent'])) {
+    
     $username = trim($_POST['register_username']);
     $rawPassword = $_POST['register_password'];
     $email = trim($_POST['register_email']);
@@ -46,17 +52,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_username'], 
     elseif (strlen($rawPassword) < 8) {
         $register_error = "The password must be at least 8 characters.";
     }
-    // Проверка на существование email в базе данных
+    // Проверка email
     else {
-        $emailCheckSql = "SELECT id FROM users WHERE email = ?";
-        $emailStmt = $conn->prepare($emailCheckSql);
-        $emailStmt->bind_param('s', $email);
-        $emailStmt->execute();
-        $emailStmt->store_result();
-        if ($emailStmt->num_rows > 0) {
-            $register_error = "The specified email is already in use.";
+        // 1. Проверка синтаксиса с помощью egulias/email-validator
+        $validator = new EmailValidator();
+        if (!$validator->isValid($email, new RFCValidation())) {
+            $register_error = "Неверный формат email.";
         }
-        $emailStmt->close();
+        else {
+            // 2. Проверка домена на наличие MX-записей
+            $domain = substr(strrchr($email, "@"), 1);
+            if (!checkdnsrr($domain, 'MX')) {
+                $register_error = "Домен email не имеет MX-записей или не существует.";
+            }
+            else {
+                // 3. Проверка на существование email в базе данных
+                $emailCheckSql = "SELECT id FROM users WHERE email = ?";
+                $emailStmt = $conn->prepare($emailCheckSql);
+                $emailStmt->bind_param('s', $email);
+                $emailStmt->execute();
+                $emailStmt->store_result();
+                if ($emailStmt->num_rows > 0) {
+                    $register_error = "The specified email is already in use.";
+                }
+                $emailStmt->close();
+            }
+        }
     }
 
     // Если ошибки не обнаружены, продолжаем регистрацию

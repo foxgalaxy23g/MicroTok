@@ -1,0 +1,6 @@
+{
+    "require": {
+        "egulias/email-validator": "^4.0",
+        "aws/aws-sdk-php": "^3.339"
+    }
+}
