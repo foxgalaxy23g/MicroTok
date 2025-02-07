@@ -1,7 +1,6 @@
 <?php
 include("elements/php/main/db.php");
 include("elements/php/main/verify.php");
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_POST['description'])) {
     $video = $_FILES['video'];
     $description = trim($_POST['description']);

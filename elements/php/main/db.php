@@ -31,6 +31,7 @@ if ((!$mail_smtp || !$mail_login || !$mail_pass) && basename($_SERVER['PHP_SELF'
     $server_open_now = 0;
 }
 
+
 // Enable error reporting for debugging
 ini_set('display_errors', 13);
 error_reporting(E_ALL);
