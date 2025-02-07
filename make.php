@@ -1,7 +1,7 @@
 <?php
 include("elements/php/main/db.php");
 include("elements/php/main/verify.php");
-
+require_once 'elements/php/main/aws.php';
 // Получаем список доступных тем
 $sql = "SELECT id, name FROM themes";
 $result = $conn->query($sql);
@@ -56,33 +56,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
         die("Размер обложки не должен превышать 10 МБ.");
     }
 
-    $uploadDir = 'uploads/videos/';
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
+    // Генерируем уникальное имя для видео в бакете S3
+    $videoKey = 'videos/' . uniqid() . ".mp4";
+
+    try {
+        $result = $s3Client->putObject([
+            'Bucket'      => S3_BUCKET,
+            'Key'         => $videoKey,
+            'SourceFile'  => $video['tmp_name'],
+            'ACL'         => 'public-read', // если хотите, чтобы файл был общедоступным
+            'ContentType' => 'video/mp4',
+        ]);
+    } catch (AwsException $e) {
+        die("Ошибка загрузки видео в S3: " . $e->getMessage());
     }
 
-    $videoPath = $uploadDir . uniqid() . ".mp4";
-    if (!move_uploaded_file($video['tmp_name'], $videoPath)) {
-        die("Не удалось загрузить видео.");
-    }
-
-    $coverImageDir = 'uploads/covers/';
-    if (!is_dir($coverImageDir)) {
-        mkdir($coverImageDir, 0777, true);
-    }
+    // Получаем URL загруженного видео
+    $videoUrl = $result->get('ObjectURL');
 
     $coverImageExtension = pathinfo($coverImage['name'], PATHINFO_EXTENSION);
-    $coverImageName = uniqid() . '.' . $coverImageExtension;
-    $coverImagePath = $coverImageDir . $coverImageName;
+    $coverImageKey = 'covers/' . uniqid() . '.' . $coverImageExtension;
 
-    if (!move_uploaded_file($coverImage['tmp_name'], $coverImagePath)) {
-        die("Не удалось загрузить обложку.");
+    try {
+        $result = $s3Client->putObject([
+            'Bucket'      => S3_BUCKET,
+            'Key'         => $coverImageKey,
+            'SourceFile'  => $coverImage['tmp_name'],
+            'ACL'         => 'public-read',
+            'ContentType' => $coverImage['type'], // 'image/jpeg' или 'image/png'
+        ]);
+    } catch (AwsException $e) {
+        die("Ошибка загрузки обложки в S3: " . $e->getMessage());
     }
+
+    // Получаем URL загруженной обложки
+    $coverImageUrl = $result->get('ObjectURL');
 
     $sql = "INSERT INTO videos (user_id, path, description, upload_time, cover_image_path, theme_id) VALUES (?, ?, ?, NOW(), ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param('isssi', $user_id, $videoPath, $description, $coverImagePath, $theme_id);
-    $stmt->execute();
+    $stmt->bind_param('isssi', $user_id, $videoUrl, $description, $coverImageUrl, $theme_id);
+    $stmt->execute();    
 
     // Получаем ID загруженного видео
     $uploadedVideoId = $conn->insert_id;
