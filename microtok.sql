@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Фев 06 2025 г., 21:28
+-- Время создания: Фев 07 2025 г., 18:07
 -- Версия сервера: 8.0.30
 -- Версия PHP: 8.1.9
 
@@ -31,7 +31,8 @@ CREATE TABLE `banned_users` (
   `id` int UNSIGNED NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
   `ban_reason` varchar(255) NOT NULL,
-  `banned_at` datetime NOT NULL
+  `banned_at` datetime NOT NULL,
+  `unlock_at` varchar(20) NOT NULL DEFAULT '-1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -97,6 +98,21 @@ CREATE TABLE `themes` (
   `name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+--
+-- Дамп данных таблицы `themes`
+--
+
+INSERT INTO `themes` (`id`, `name`) VALUES
+(4, 'Blog'),
+(7, 'Comedy'),
+(9, 'Furry'),
+(3, 'Gaming'),
+(1, 'IT'),
+(6, 'Music'),
+(2, 'News'),
+(8, 'Politics'),
+(5, 'Since(Education)');
+
 -- --------------------------------------------------------
 
 --
@@ -107,7 +123,7 @@ CREATE TABLE `users` (
   `id` int NOT NULL,
   `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'elements/embeded/me/classic-avava.png',
+  `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'uploads/avatars/classic-avava.png',
   `email` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -160,6 +176,13 @@ CREATE TABLE `video_likes` (
 --
 -- Индексы сохранённых таблиц
 --
+
+--
+-- Индексы таблицы `banned_users`
+--
+ALTER TABLE `banned_users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_id_unique` (`user_id`);
 
 --
 -- Индексы таблицы `comments`
@@ -233,6 +256,12 @@ ALTER TABLE `video_likes`
 --
 
 --
+-- AUTO_INCREMENT для таблицы `banned_users`
+--
+ALTER TABLE `banned_users`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT для таблицы `comments`
 --
 ALTER TABLE `comments`
@@ -254,7 +283,7 @@ ALTER TABLE `comment_replies`
 -- AUTO_INCREMENT для таблицы `themes`
 --
 ALTER TABLE `themes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
