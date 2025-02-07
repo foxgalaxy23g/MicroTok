@@ -10,3 +10,4 @@ In the future, most likely this social network will be updated
 6) Change config in C:\OSPanel\domains\MicroTok-main\elements\php\main\db.php
 7) Get AWS S3 Server
 8) Change config in C:\OSPanel\domains\MicroTok-main\elements\php\main\aws.php
+9) Install libraries and modules with command composer install
