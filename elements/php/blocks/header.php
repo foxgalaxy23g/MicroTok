@@ -123,7 +123,7 @@
         <img src="<?php echo $userAvatar; ?>" alt="User Avatar" id="userAvatar" class="user-avatar">
         <div id="userMenu" class="dropdown-menu" style="display: none; margin-left: -8vh;">
           <ul>
-            <li><a href="/profile.php">Profile</a></li>
+            <li><a href="/profile.php?id=<?php echo($user_id); ?>">Profile</a></li>
             <li><a href="/settings.php">Settings</a></li>
             <li><a href="/exit.php">Exit</a></li>
           </ul>

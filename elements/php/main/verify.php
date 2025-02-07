@@ -100,8 +100,6 @@ function scan_request_for_sql_injections() {
     return false;
 }
 
-// Функция для бана пользователя с датой разблокировки
-// Если $unlock_date равна '-1', значит бан перманентный
 function banUser($conn, $user_id, $reason = 'XSS attack detected', $unlock_date = '-1') {
     $stmt = $conn->prepare(
         "INSERT INTO banned_users (id, user_id, ban_reason, banned_at, unlock_at) 
@@ -128,6 +126,25 @@ function isUserBanned($conn, $user_id) {
     $stmt->fetch();
     $stmt->close();
     return ($count > 0);
+}
+
+// Проверяем входящие данные на XSS
+if (scan_request_for_xss()) {
+    if (isset($_COOKIE['auth_token'])) {
+        $token = $_COOKIE['auth_token'];
+        $sql = "SELECT user_id FROM user_tokens WHERE token = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('s', $token);
+        $stmt->execute();
+        $stmt->bind_result($user_id);
+        $stmt->fetch();
+        $stmt->close();
+        if ($user_id) {
+            // При бане из-за XSS оставляем перманентный бан, поэтому unlock_date = '-1'
+            banUser($conn, $user_id, 'XSS attack detected', '-1');
+        }
+    }
+    exit('XSS attempt detected.');
 }
 
 // Функция аутентификации пользователя
@@ -171,31 +188,6 @@ function authenticate($conn) {
         'created_at'        => $created_at,
         'last_interaction'  => $last_interaction
     ];
-}
-
-// Проверяем входящие данные на XSS
-if (scan_request_for_xss()) {
-    if (isset($_COOKIE['auth_token'])) {
-        $token = $_COOKIE['auth_token'];
-        $sql = "SELECT user_id FROM user_tokens WHERE token = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('s', $token);
-        $stmt->execute();
-        $stmt->bind_result($user_id);
-        $stmt->fetch();
-        $stmt->close();
-        if ($user_id) {
-            // При бане из-за XSS оставляем перманентный бан, поэтому unlock_date = '-1'
-            banUser($conn, $user_id, 'XSS attack detected', '-1');
-        }
-    }
-    exit('XSS attempt detected.');
-}
-
-// Если обнаружена попытка SQL-инъекции, прекращаем выполнение скрипта
-if (scan_request_for_sql_injections()) {
-    banUser($conn, $user_id, 'XSS attack detected', '-1');
-    exit('SQL injection attempt detected.');
 }
 
 // Аутентифицируем пользователя и сохраняем его id в сессию
