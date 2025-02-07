@@ -84,7 +84,10 @@ if (isset($_GET['delete_video_id'])) {
     }
 }
 
-$sql = "SELECT id, cover_image_path, description FROM videos WHERE user_id = ?";
+$sql = "SELECT v.id, v.cover_image_path, v.description,
+           (SELECT COUNT(*) FROM video_views WHERE video_id = v.id) AS views
+        FROM videos v
+        WHERE user_id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
@@ -117,17 +120,18 @@ $result = $stmt->get_result();
     <div class="content">
         <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
         <h1>My Videos</h1>
-        <table style="border-radius: 15px;" >
+        <table style="border-radius: 15px;">
             <tr>
                 <th>Video Preview</th>
                 <th>Description</th>
+                <th>Просмотры</th>
                 <th>Actions</th>
             </tr>
             <?php while ($row = $result->fetch_assoc()) : ?>
                 <tr>
                     <td>
                         <a href="feed.php?id=<?php echo $row['id']; ?>">
-                            <img src="<?php echo htmlspecialchars($row['cover_image_path']); ?>" alt="<?php echo htmlspecialchars($row['cover_image_path']); ?>" width="200" style="border-radius: 15px; vertical-align: middle;">
+                            <img src="<?php echo htmlspecialchars($row['cover_image_path']); ?>" alt="Preview" width="200" style="border-radius: 15px; vertical-align: middle;">
                         </a>
                     </td>
                     <td>
@@ -138,6 +142,9 @@ $result = $stmt->get_result();
                         </form>
                     </td>
                     <td>
+                        <?php echo $row['views']; ?>
+                    </td>
+                    <td>
                         <a href="?delete_video_id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure you want to delete this video?')">
                             <button style="border-radius: 15px; vertical-align: middle;">Delete</button>
                         </a>
@@ -145,6 +152,8 @@ $result = $stmt->get_result();
                 </tr>
             <?php endwhile; ?>
         </table>
+        <!-- Дополнительные отступы (при необходимости) -->
+    </div>
         <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
         <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
         <h1 style="color: rgba(255, 255, 255, 0);">^</h1>

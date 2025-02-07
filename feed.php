@@ -3,6 +3,31 @@ session_start();
 // Подключаем API (в котором уже происходит аутентификация)
 include("elements/php/main/api1.php");
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['current_video_id'])) {
+  // Получаем текущий ID видео из POST
+  $current_video_id = (int) $_POST['current_video_id'];
+  
+  // Запрос для получения следующего видео (наиболее "популярного", отличного от текущего)
+  $sql = "
+      SELECT v.id 
+      FROM videos v 
+      LEFT JOIN video_likes vl ON v.id = vl.video_id
+      WHERE v.id != ? 
+      GROUP BY v.id 
+      ORDER BY COUNT(vl.id) DESC 
+      LIMIT 1";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("i", $current_video_id);
+  $stmt->execute();
+  $stmt->bind_result($next_video_id);
+  $stmt->fetch();
+  $stmt->close();
+  
+  // Если нашли следующее видео, возвращаем его ID, иначе возвращаем текущий
+  echo $next_video_id ? $next_video_id : $current_video_id;
+  exit;
+}
+
 // Загрузка списка видео
 $ids = [];
 $sql = "SELECT id FROM videos";
@@ -35,55 +60,102 @@ if ($video_id && in_array($video_id, $ids)) {
 }
 
 if ($result->num_rows > 0) {
-    $video = $result->fetch_assoc();
-    // Сохраняем идентификатор владельца видео в отдельной переменной
-    $video_owner_id = $video['user_id'];
-    
-    $sql = "SELECT username, avatar FROM users WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $video_owner_id);
-    $stmt->execute();
-    $user_result = $stmt->get_result();
-    $user_data = $user_result->num_rows > 0 ? $user_result->fetch_assoc() : null;
-    $username = $user_data ? $user_data['username'] : 'Unknown User';
-    $avatar = $user_data ? $user_data['avatar'] : 'default-avatar.jpg';
+  $video = $result->fetch_assoc();
+  $video_owner_id = $video['user_id'];
 
-    // Получаем данные о лайках/дизлайках видео
-    $sql = "SELECT 
-                SUM(CASE WHEN reaction = 'like' THEN 1 ELSE 0 END) AS likes,
-                SUM(CASE WHEN reaction = 'dislike' THEN 1 ELSE 0 END) AS dislikes
-            FROM video_likes WHERE video_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('i', $video_id);
-    $stmt->execute();
-    $stmt->bind_result($likes, $dislikes);
-    $stmt->fetch();
-    $stmt->close();
+  $sql = "SELECT username, avatar FROM users WHERE id = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("i", $video_owner_id);
+  $stmt->execute();
+  $user_result = $stmt->get_result();
+  $user_data = $user_result->num_rows > 0 ? $user_result->fetch_assoc() : null;
+  $username = $user_data ? $user_data['username'] : 'Unknown User';
+  $avatar = $user_data ? $user_data['avatar'] : 'default-avatar.jpg';
 
-    // Получаем идентификатор текущего (авторизованного) пользователя
-    $current_user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
-    
-    // Проверяем, подписан ли текущий пользователь на канал владельца видео
-    $sql = "SELECT COUNT(*) FROM subscriptions WHERE user_id = ? AND channel_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ii", $current_user_id, $video_owner_id);
-    $stmt->execute();
-    $stmt->bind_result($is_subscribed);
-    $stmt->fetch();
-    $stmt->close();
+  // Получаем данные о лайках и дизлайках
+  $sql = "SELECT 
+              SUM(CASE WHEN reaction = 'like' THEN 1 ELSE 0 END) AS likes,
+              SUM(CASE WHEN reaction = 'dislike' THEN 1 ELSE 0 END) AS dislikes
+          FROM video_likes WHERE video_id = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param('i', $video_id);
+  $stmt->execute();
+  $stmt->bind_result($likes, $dislikes);
+  $stmt->fetch();
+  $stmt->close();
 
-    // Количество подписчиков канала (владельца видео)
-    $sql = "SELECT COUNT(*) FROM subscriptions WHERE channel_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $video_owner_id);
-    $stmt->execute();
-    $stmt->bind_result($subscribers_count);
-    $stmt->fetch();
-    $stmt->close();
+  // Получаем идентификатор текущего пользователя
+  $current_user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+
+  // Проверка подписки на канал
+  $sql = "SELECT COUNT(*) FROM subscriptions WHERE user_id = ? AND channel_id = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("ii", $current_user_id, $video_owner_id);
+  $stmt->execute();
+  $stmt->bind_result($is_subscribed);
+  $stmt->fetch();
+  $stmt->close();
+
+  // Количество подписчиков
+  $sql = "SELECT COUNT(*) FROM subscriptions WHERE channel_id = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("i", $video_owner_id);
+  $stmt->execute();
+  $stmt->bind_result($subscribers_count);
+  $stmt->fetch();
+  $stmt->close();
+
+  // Проверяем, был ли уже просмотр видео
+  if (!isset($_SESSION['viewed_videos'])) {
+      $_SESSION['viewed_videos'] = [];
+  }
+
+  // Добавление только если пользователь еще не смотрел видео
+  if (!in_array($video_id, $_SESSION['viewed_videos'])) {
+      $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+
+      // Проверяем, был ли этот просмотр уже зарегистрирован в таблице
+      if ($user_id === null) {
+          $stmtViewsCheck = $conn->prepare("SELECT COUNT(*) FROM video_views WHERE video_id = ? AND user_id IS NULL");
+          $stmtViewsCheck->bind_param("i", $video_id);
+      } else {
+          $stmtViewsCheck = $conn->prepare("SELECT COUNT(*) FROM video_views WHERE video_id = ? AND user_id = ?");
+          $stmtViewsCheck->bind_param("ii", $video_id, $user_id);
+      }
+      $stmtViewsCheck->execute();
+      $stmtViewsCheck->bind_result($view_exists);
+      $stmtViewsCheck->fetch();
+      $stmtViewsCheck->close();
+
+      if ($view_exists == 0) {
+          // Добавляем новый просмотр
+          if ($user_id === null) {
+              $stmtViews = $conn->prepare("INSERT INTO video_views (video_id, user_id) VALUES (?, NULL)");
+              $stmtViews->bind_param("i", $video_id);
+          } else {
+              $stmtViews = $conn->prepare("INSERT INTO video_views (video_id, user_id) VALUES (?, ?)");
+              $stmtViews->bind_param("ii", $video_id, $user_id);
+          }
+          $stmtViews->execute();
+          $stmtViews->close();
+
+          // Добавляем в сессию, чтобы избежать повторных просмотров
+          $_SESSION['viewed_videos'][] = $video_id;
+      }
+  }
+
+  // Получаем общее количество просмотров
+  $stmtCount = $conn->prepare("SELECT COUNT(*) FROM video_views WHERE video_id = ?");
+  $stmtCount->bind_param("i", $video_id);
+  $stmtCount->execute();
+  $stmtCount->bind_result($views);
+  $stmtCount->fetch();
+  $stmtCount->close();
 } else {
-    echo "<p>Видео не найдено.</p>";
-    exit;
+  echo "<p>Видео не найдено.</p>";
+  exit;
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -132,6 +204,7 @@ if ($result->num_rows > 0) {
             (subs <?php echo $subscribers_count; ?>)
           </p>
           <p>Description: <?php echo htmlspecialchars($video['description']); ?></p>
+          <p>Просмотры: <?php echo $views; ?></p>
         </div>
         <div class="progress-bar-container">
           <div class="progress-bar"></div>
@@ -493,7 +566,7 @@ if ($result->num_rows > 0) {
 
     function changeVideo() {
       $.ajax({
-        url: 'elements/php/main/change_video.php',
+        url: '',
         type: 'POST',
         data: { current_video_id: currentVideoId },
         success: function(response) {
