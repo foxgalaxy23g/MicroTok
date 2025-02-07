@@ -53,11 +53,71 @@ function scan_request_for_xss() {
     return false;
 }
 
-// Функция для бана пользователя
-function banUser($conn, $user_id, $reason = 'XSS attack detected') {
-    $stmt = $conn->prepare("INSERT INTO banned_users (user_id, ban_reason, banned_at) VALUES (?, ?, NOW()) 
-                            ON DUPLICATE KEY UPDATE ban_reason = VALUES(ban_reason), banned_at = VALUES(banned_at)");
-    $stmt->bind_param("is", $user_id, $reason);
+// Функция для обнаружения подозрительных строк, характерных для SQL-инъекций
+function sql_injection_detected($input) {
+    $patterns = [
+        '/(\%27)|(\')|(\-\-)|(\%23)|(#)/i',
+        '/((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))/i',
+        '/\w*((\%27)|(\'))(\s)*((\%6F)|o|(\%4F))((\%72)|r|(\%52))/i',
+        '/((\%27)|(\'))union/i'
+    ];
+    foreach ($patterns as $pattern) {
+        if (preg_match($pattern, $input)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Функция для проверки входящих данных (GET и POST) на наличие SQL-инъекций
+function scan_request_for_sql_injections() {
+    foreach ($_GET as $key => $value) {
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                if (sql_injection_detected($item)) {
+                    return true;
+                }
+            }
+        } else {
+            if (sql_injection_detected($value)) {
+                return true;
+            }
+        }
+    }
+    foreach ($_POST as $key => $value) {
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                if (sql_injection_detected($item)) {
+                    return true;
+                }
+            }
+        } else {
+            if (sql_injection_detected($value)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Если обнаружена попытка SQL-инъекции, прекращаем выполнение скрипта
+if (scan_request_for_sql_injections()) {
+    banUser($conn, $user_id, 'XSS attack detected', '-1');
+    exit('SQL injection attempt detected.');
+}
+
+// Функция для бана пользователя с датой разблокировки
+// Если $unlock_date равна '-1', значит бан перманентный
+function banUser($conn, $user_id, $reason = 'XSS attack detected', $unlock_date = '-1') {
+    $stmt = $conn->prepare(
+        "INSERT INTO banned_users (user_id, ban_reason, banned_at, unlock_at) 
+         VALUES (?, ?, NOW(), ?) 
+         ON DUPLICATE KEY UPDATE 
+             ban_reason = VALUES(ban_reason), 
+             banned_at = VALUES(banned_at), 
+             unlock_at = VALUES(unlock_at)"
+    );
+    $stmt->bind_param("iss", $user_id, $reason, $unlock_date);
     $stmt->execute();
     $stmt->close();
     header('Location: banned.php');
@@ -131,7 +191,8 @@ if (scan_request_for_xss()) {
         $stmt->fetch();
         $stmt->close();
         if ($user_id) {
-            banUser($conn, $user_id, 'XSS attack detected');
+            // При бане из-за XSS оставляем перманентный бан, поэтому unlock_date = '-1'
+            banUser($conn, $user_id, 'XSS attack detected', '-1');
         }
     }
     exit('XSS attempt detected.');

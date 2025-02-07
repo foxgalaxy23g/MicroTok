@@ -4,6 +4,8 @@ require 'vendor/autoload.php'; // подключаем автозагрузчи�
 
 use Egulias\EmailValidator\EmailValidator;
 use Egulias\EmailValidator\Validation\RFCValidation;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 include("elements/php/main/translator.php");
 include("elements/php/main/db.php");
@@ -11,24 +13,122 @@ include("elements/php/main/cursor.php");
 
 $project_decsi = "Social media made by no name furry just for fun";
 
-// Функция для отправки кода на email через Python скрипт
 function sendVerificationCode($email, $code, $ip_address, $user_agent, $project_name) {
-    // Указываем полный путь к Python и скрипту
-    $pythonPath = "C:\\Users\\MihaB\\AppData\\Local\\Programs\\Python\\Python313\\python.exe"; // Замените на путь к вашему Python
-    $scriptPath = "C:\\OSPanel\\domains\\MicroTok\\elements\\python\\send_mail.py"; // Замените на путь к вашему скрипту
+    $mail = new PHPMailer(true);
+    global $mail_smtp, $mail_login, $mail_pass, $mail_port;
+    $log_file = 'mail.log';  // Путь к лог-файлу
 
-    // Формируем команду
-    $command = escapeshellcmd("$pythonPath $scriptPath $email $code $ip_address $user_agent $project_name");
+    try {
+        // Настройка SMTP-сервера
+        $mail->isSMTP();
+        $mail->Host = $mail_smtp;
+        $mail->SMTPAuth = true;
+        $mail->Username = $mail_login;
+        $mail->Password = $mail_pass;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;  // Для STARTTLS используем порт 587
 
+        // Включение отладки
+        $mail->SMTPDebug = 2;  // или 3 для более подробного вывода
+        $mail->Debugoutput = function($str, $level) use ($log_file) {
+            // Записываем вывод отладки в лог-файл
+            //error_log(date('Y-m-d H:i:s') . " - $level: $str\n", 3, $log_file);
+        };
 
-    // Логирование для отладки
-    error_log("Executing command: $command");
+        // Отправитель и получатель
+        $mail->setFrom($mail_login, $project_name);
+        $mail->addAddress($email);
 
-    // Выполнение команды
-    $output = shell_exec($command);
+        // Встраиваем логотип (убедитесь, что файл существует по указанному пути)
+        $mail->addEmbeddedImage('elements/embeded/me/logo.png', 'logo'); // Замените '/path/to/logo.png' на реальный путь
 
-    // Логирование вывода
-    error_log("Output: $output");
+        // Настройка письма
+        $mail->isHTML(true);
+        $mail->Subject = 'Someone is trying to log into your ' . $project_name . ' account';
+
+        // HTML-содержимое письма с внедрённой формой
+        $mail->Body = '
+        <html>
+            <head>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        color: #333;
+                    }
+                    .container {
+                        width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        border: 1px solid #ddd;
+                        border-radius: 20px;
+                        background-color: #f9f9f9;
+                    }
+                    .header {
+                        display: flex;
+                        text-align: center;
+                        margin-bottom: 20px;
+                        background-color: rgb(98, 0, 255);
+                        border-radius: 20px;
+                        align-items: center;
+                    }
+                    .logo {
+                        width: 15%;
+                        height: 100%;
+                        background-color: rgb(0, 0, 0);
+                        border-radius: 20px;
+                        align-items: center
+                    }
+                    .content {
+                        font-size: 16px;
+                        line-height: 1.6;
+                    }
+                    .verification-code {
+                        font-size: 18px;
+                        font-weight: bold;
+                        color: rgb(98, 0, 255);
+                    }
+                    .footer {
+                        font-size: 14px;
+                        color: #888;
+                        text-align: center;
+                        margin-top: 20px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <img src="cid:logo" class="logo" alt="Logo">
+                        <h1 style="color: #f9f9f9;">' . htmlspecialchars($project_name) . '</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hello,</p>
+                        <p>We noticed a login attempt to your ' . htmlspecialchars($project_name) . ' account from an unrecognized device.</p>
+                        <p><strong>Verification Code:</strong> <span class="verification-code">' . htmlspecialchars($code) . '</span></p>
+                        <p>If you did not initiate this login attempt, please disregard this email.</p>
+                        <p><strong>Login Details:</strong></p>
+                        <ul>
+                            <li><strong>IP Address:</strong> ' . htmlspecialchars($ip_address) . '</li>
+                            <li><strong>User Agent:</strong> ' . htmlspecialchars($user_agent) . '</li>
+                        </ul>
+                        <p>For security purposes, if this wasn’t you, please change your password immediately.</p>
+                    </div>
+                    <div class="footer">
+                        <p>Best regards, <br>' . htmlspecialchars($project_name) . ' Team</p>
+                    </div>
+                </div>
+            </body>
+        </html>';
+
+        // Альтернативное текстовое сообщение для почтовых клиентов, не поддерживающих HTML
+        $mail->AltBody = 'Verification Code: ' . $code . "\nIP Address: " . $ip_address . "\nUser Agent: " . $user_agent;
+
+        // Отправка письма
+        $mail->send();
+        //error_log(date('Y-m-d H:i:s') . " - Verification email sent successfully.\n", 3, $log_file);
+    } catch (Exception $e) {
+        //error_log(date('Y-m-d H:i:s') . " - Message could not be sent. Mailer Error: {$mail->ErrorInfo}\n", 3, $log_file);
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
