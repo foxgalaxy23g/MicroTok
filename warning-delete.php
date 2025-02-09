@@ -34,7 +34,7 @@ include("elements/php/main/db.php");
 </head>
 <body>
     <noscript>
-      <meta http-equiv="refresh" content="0; url=/javascript.html">
+      <meta http-equiv="refresh" content="0; url=/javascript.php">
     </noscript>
     <div class="logout-container">
         <h2>Are you sure you want delete your <?php echo($project_name); ?> account?</h2>

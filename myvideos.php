@@ -108,7 +108,7 @@ $result = $stmt->get_result();
         <?php include("elements/php/blocks/header.php"); ?>
     </div>
     <noscript>
-        <meta http-equiv="refresh" content="0; url=/javascript.html">
+        <meta http-equiv="refresh" content="0; url=/javascript.php">
     </noscript>
     <div class="sidebar">
         <a href="make.php"><i></i></a> 

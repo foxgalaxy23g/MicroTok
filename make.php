@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
         ?>
     </div>
     <noscript>
-        <meta http-equiv="refresh" content="0; url=/javascript.html">
+        <meta http-equiv="refresh" content="0; url=/javascript.php">
     </noscript>
     <div class="sidebar">
         <a href="make.php"><i></i></a> 

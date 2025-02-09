@@ -20,7 +20,7 @@ if($server_open_now == "1")
 </head>
 <body>
     <noscript>
-        <meta http-equiv="refresh" content="0; url=/javascript.html">
+        <meta http-equiv="refresh" content="0; url=/javascript.php">
     </noscript>
     <?php include("elements/php/blocks/header_old.php"); ?>
     <h1>Warning! <?php echo($project_name); ?> is currently closed!</h1>

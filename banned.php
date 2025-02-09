@@ -70,6 +70,9 @@ setcookie(session_name(), '', time() - 3600, '/', '', false, true);
     <link rel="stylesheet" href="elements/css/banned.css">
 </head>
 <body>
+    <noscript>
+        <meta http-equiv="refresh" content="0; url=/javascript.php">
+    </noscript>
     <div class="container">
         <h1>You Are Banned</h1>
         <p>Your access to the site has been restricted for the following reason:</p>

@@ -188,6 +188,9 @@ if ($result->num_rows > 0) {
   </style>
 </head>
 <body>
+  <noscript>
+    <meta http-equiv="refresh" content="0; url=/javascript.php">
+  </noscript>
   <?php include("elements/php/blocks/header.php"); ?>
   <h2 style="color: rgba(98, 0, 255, 0);">^</h2>
   <div id="reaction-rain-container"></div>

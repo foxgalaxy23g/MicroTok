@@ -390,7 +390,7 @@ if (isset($_COOKIE['auth_token'])) {
 </head>
 <body>
     <noscript>
-      <meta http-equiv="refresh" content="0; url=/javascript.html">
+      <meta http-equiv="refresh" content="0; url=/javascript.php">
     </noscript>
 
     <!-- Экран загрузки -->

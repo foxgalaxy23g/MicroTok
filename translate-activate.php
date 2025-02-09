@@ -9,7 +9,7 @@
 <body>
     <?php include("elements/php/main/db.php"); ?>
     <noscript>
-        <meta http-equiv="refresh" content="0; url=/javascript.html">
+        <meta http-equiv="refresh" content="0; url=/javascript.php">
     </noscript>
     <h1>Select your language🌎</h1>
     <a href="index.php">Go back</a>

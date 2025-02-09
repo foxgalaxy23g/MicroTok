@@ -1,0 +1,62 @@
+/* Сброс стилей для всех элементов */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Светлая тема (стандартная) */
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  /* Стили для заголовка */
+  h1 {
+    font-size: 2.5rem;
+    color: #e74c3c;
+    margin-bottom: 20px;
+  }
+  
+  /* Стили для ссылок */
+  a {
+    font-size: 1.2rem;
+    color: #2980b9;
+    text-decoration: none;
+    margin-bottom: 10px;
+    transition: color 0.3s;
+  }
+  
+  a:hover {
+    color: #1c5980;
+    text-decoration: underline;
+  }
+  
+  /* Тёмная тема: переопределение стилей для устройств, настроенных на тёмную тему */
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+  
+    h1 {
+      color: #ff6b6b;
+    }
+  
+    a {
+      color: #82aaff;
+    }
+  
+    a:hover {
+      color: #6699ff;
+    }
+  }
+  

@@ -60,6 +60,9 @@ $tokens = getUserTokens($conn, $user_id);
     <link rel="stylesheet" href="elements/css/sessions.css">
 </head>
 <body>
+<noscript>
+    <meta http-equiv="refresh" content="0; url=/javascript.php">
+  </noscript>
     <?php 
         include("elements/php/blocks/header_old.php"); 
     ?>

@@ -83,7 +83,9 @@ if (!empty($videos)) {
 </head>
 <body>
   <?php include("elements/php/blocks/header.php"); ?>
-
+  <noscript>
+    <meta http-equiv="refresh" content="0; url=/javascript.php">
+  </noscript>
   <div class="profile-page">
     <div class="user-info">
       <img src="<?php echo htmlspecialchars($avatar); ?>" alt="Avatar">

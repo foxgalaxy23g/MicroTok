@@ -106,6 +106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="elements/css/settings.css">
 </head>
 <body>
+    <noscript>
+        <meta http-equiv="refresh" content="0; url=/javascript.php">
+    </noscript>
     <?php 
         include("elements/php/blocks/header_old.php"); 
     ?>

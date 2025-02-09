@@ -58,6 +58,10 @@ if ($result->num_rows > 0) {
     <link rel="stylesheet" href="elements/css/feed.css">
     <link rel="stylesheet" href="elements/css/search.css">
 </head>
+<body>
+  <noscript>
+    <meta http-equiv="refresh" content="0; url=/javascript.php">
+  </noscript>
 <?php include("elements/php/blocks/header.php"); ?>
 
     <div class="profile-page">
