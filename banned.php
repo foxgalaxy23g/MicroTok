@@ -68,6 +68,7 @@ setcookie(session_name(), '', time() - 3600, '/', '', false, true);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Access Denied</title>
     <link rel="stylesheet" href="elements/css/banned.css">
+    <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
     <noscript>
