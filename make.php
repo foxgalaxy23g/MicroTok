@@ -149,20 +149,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
     <title>Upload video on <?php echo htmlentities($project_name); ?></title>
     <link rel="stylesheet" href="elements/css/make.css">
     <meta name="robots" content="noindex, nofollow">
-    <style>
-        .content input {
-          width: 98%;
-          justify-content: center;
-        }
-        .content textarea {
-          width: 98%;
-          justify-content: center;
-        }
-        .content button {
-          width: 98%;
-          justify-content: center;
-        }
-    </style>
 </head>
 <body>
     <div class="header-container">

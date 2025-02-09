@@ -1,0 +1,87 @@
+    /* Общие стили */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      /* Светлая тема */
+      body.light {
+        background-color: #f0f0f0;
+        color: #333;
+      }
+      /* Тёмная тема */
+      body.dark {
+        background-color: #121212;
+        color: #fff;
+      }
+      /* Стили для header */
+      .header {
+        background-color: inherit;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+      .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+      /* Стили для профиля */
+      .profile-page {
+        padding: 20px;
+      }
+      .user-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .user-info img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+      .user-info p {
+        font-size: 1.2rem;
+        margin: 0;
+      }
+      /* Сетка для видео */
+      .video-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+      }
+      /* Дизайн превью видео */
+      .video-item {
+        position: relative;
+        display: block;
+        width: 100%;
+        max-width: 320px;
+        height: 0;
+        padding-bottom: 177.77%; /* Соотношение 9:16 */
+        background-size: cover;
+        background-position: center;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-decoration: none;
+        transition: transform 0.3s ease;
+      }
+      .video-item:hover {
+        transform: scale(1.03);
+      }
+      .video-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 10px;
+        background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      }
+      .video-overlay h2 {
+        margin: 0;
+        color: #fff;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        font-size: 1rem;
+      }

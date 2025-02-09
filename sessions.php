@@ -57,31 +57,7 @@ $tokens = getUserTokens($conn, $user_id);
     <title>Settings</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="elements/css/settings.css">
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 10px;
-            border: 1px solid #424242;
-            text-align: left;
-        }
-
-        th {
-            background-color: #474747;
-        }
-
-        a {
-            color: red;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <link rel="stylesheet" href="elements/css/sessions.css">
 </head>
 <body>
     <?php 

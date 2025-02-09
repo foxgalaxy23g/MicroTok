@@ -386,27 +386,6 @@ if (isset($_COOKIE['auth_token'])) {
     <link rel="icon" href="elements/embeded/me/logo.png" type="image/x-icon"/>
     <meta name="description" content="<?php echo($project_decsi); ?>">
     <style>
-        /* Стили для контейнера поля пароля с полоской */
-        .password-container {
-            position: relative;
-        }
-        /* Поле ввода пароля растягивается на 100% */
-        .password-container input {
-            width: 100%;
-            box-sizing: border-box;
-            padding-right: 50px; /* место для полоски */
-        }
-        /* Полоска надёжности пароля */
-        .password-strength {
-            position: absolute;
-            right: 5px;
-            top: 37%;
-            transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
-            border-radius: 5px;
-            background-color: #ccc;
-        }
     </style>
 </head>
 <body>

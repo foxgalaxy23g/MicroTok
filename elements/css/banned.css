@@ -1,0 +1,72 @@
+/* Основные стили с поддержкой автоматического переключения темы */
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+    .container {
+        background-color: #1e1e1e;
+        border-color: #333;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+
+    h1 {
+        color: #ff6b6b;
+    }
+
+    p {
+        color: #bbb;
+    }
+
+    .reason {
+        background-color: #4d0000;
+        color: #ff9999;
+    }
+}
+
+/* Светлая тема по умолчанию */
+body {
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+    color: #000;
+    padding-top: 50px;
+    margin: 0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.container {
+    background-color: #fff;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    display: inline-block;
+    padding: 40px 60px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 100%;
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+h1 {
+    font-size: 32px;
+    color: #ff4d4d;
+    transition: color 0.3s;
+}
+
+p {
+    font-size: 18px;
+    color: #555;
+    transition: color 0.3s;
+}
+
+.reason {
+    background-color: #ffe6e6;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    color: #e60000;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+}

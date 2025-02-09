@@ -67,41 +67,7 @@ setcookie(session_name(), '', time() - 3600, '/', '', false, true);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Access Denied</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            text-align: center;
-            background-color: #f4f4f4;
-            padding-top: 50px;
-            margin: 0;
-        }
-        .container {
-            background-color: #fff;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            display: inline-block;
-            padding: 40px 60px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            width: 100%;
-        }
-        h1 {
-            font-size: 32px;
-            color: #ff4d4d;
-        }
-        p {
-            font-size: 18px;
-            color: #555;
-        }
-        .reason {
-            background-color: #ffe6e6;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            color: #e60000;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="elements/css/banned.css">
 </head>
 <body>
     <div class="container">

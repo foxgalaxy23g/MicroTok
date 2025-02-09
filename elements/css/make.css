@@ -48,7 +48,18 @@ button {
     cursor: pointer;
     font-weight: bold;
 }
-
+.content input {
+    width: 98%;
+    justify-content: center;
+  }
+  .content textarea {
+    width: 98%;
+    justify-content: center;
+  }
+  .content button {
+    width: 98%;
+    justify-content: center;
+  }
 textarea {
     resize: none;
 }
