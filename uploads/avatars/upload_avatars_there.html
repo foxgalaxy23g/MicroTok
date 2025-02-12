@@ -1,12 +1,139 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hi!</title>
-    <meta name="robots" content="noindex, nofollow">
+  <meta charset="UTF-8">
+  <title>SECRET GAME</title>
+  <style>
+    body {
+      background-color: #222;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    canvas {
+      background-color: #000;
+      border: 2px solid #555;
+    }
+  </style>
 </head>
 <body>
-    <h1>Hi this is just a stub you can delete it</h1>
+  <canvas id="game" width="400" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    // Размер одного квадрата (ячейки)
+    const gridSize = 20;
+    // Количество ячеек по горизонтали/вертикали (при 400х400 и gridSize=20 получаем 20 ячеек)
+    const tileCount = canvas.width / gridSize;
+
+    // Начальное положение змейки – массив с координатой головы
+    let snake = [{ x: 10, y: 10 }];
+    // Начальное направление движения (вправо)
+    let direction = { x: 1, y: 0 };
+    // Изначальное положение еды (произвольное)
+    let food = { x: 15, y: 15 };
+
+    // Основной игровой цикл, вызываемый через определённый интервал
+    function gameLoop() {
+      update();
+      draw();
+    }
+
+    // Функция обновления состояния игры
+    function update() {
+      // Вычисляем новую позицию головы змейки
+      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+      // Проверка столкновения со стенами
+      if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+        gameOver();
+        return;
+      }
+
+      // Проверка столкновения с собственным хвостом
+      for (let i = 0; i < snake.length; i++) {
+        if (snake[i].x === head.x && snake[i].y === head.y) {
+          gameOver();
+          return;
+        }
+      }
+
+      // Добавляем новую голову в начало массива
+      snake.unshift(head);
+
+      // Если еда съедена – генерируем новую еду,
+      // иначе удаляем последний элемент, чтобы длина змейки оставалась постоянной
+      if (head.x === food.x && head.y === food.y) {
+        spawnFood();
+      } else {
+        snake.pop();
+      }
+    }
+
+    // Функция генерации еды в случайной позиции
+    function spawnFood() {
+      food.x = Math.floor(Math.random() * tileCount);
+      food.y = Math.floor(Math.random() * tileCount);
+
+      // Если еда попала в тело змейки – генерируем новую
+      for (let i = 0; i < snake.length; i++) {
+        if (snake[i].x === food.x && snake[i].y === food.y) {
+          spawnFood();
+          break;
+        }
+      }
+    }
+
+    // Функция отрисовки игрового поля, змейки и еды
+    function draw() {
+      // Очищаем canvas
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Рисуем змейку
+      ctx.fillStyle = '#0f0';
+      for (let i = 0; i < snake.length; i++) {
+        // Немного уменьшаем размер квадратика для создания эффекта отступа между сегментами
+        ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize - 2, gridSize - 2);
+      }
+
+      // Рисуем еду
+      ctx.fillStyle = '#f00';
+      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+    }
+
+    // Функция обработки окончания игры
+    function gameOver() {
+      alert("Игра окончена! Попробуйте снова.");
+      // Сброс состояния игры
+      snake = [{ x: 10, y: 10 }];
+      direction = { x: 1, y: 0 };
+      spawnFood();
+    }
+
+    // Обработка нажатия клавиш для управления змейкой
+    document.addEventListener('keydown', function(e) {
+      switch (e.key) {
+        case "ArrowUp":
+          if (direction.y !== 1) { direction = { x: 0, y: -1 }; }
+          break;
+        case "ArrowDown":
+          if (direction.y !== -1) { direction = { x: 0, y: 1 }; }
+          break;
+        case "ArrowLeft":
+          if (direction.x !== 1) { direction = { x: -1, y: 0 }; }
+          break;
+        case "ArrowRight":
+          if (direction.x !== -1) { direction = { x: 1, y: 0 }; }
+          break;
+      }
+    });
+
+    // Запуск игрового цикла (интервал в 100 мс)
+    setInterval(gameLoop, 100);
+  </script>
 </body>
 </html>

@@ -1,12 +1,264 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hi!</title>
-    <meta name="robots" content="noindex, nofollow">
+  <meta charset="UTF-8">
+  <title>SECRET GAME</title>
+  <style>
+    /* Стили для центрирования канваса на странице */
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    canvas {
+      border: 2px solid #fff;
+      background: #111;
+    }
+  </style>
 </head>
 <body>
-    <h1>Hi this is just a stub you can delete it</h1>
+  <!-- Канвас размером 200x400 пикселей (10 колонок по 20 пикселей, 20 строк по 20 пикселей) -->
+  <canvas id="tetris" width="200" height="400"></canvas>
+  <script>
+    // Получаем канвас и контекст для рисования
+    const canvas = document.getElementById('tetris');
+    const context = canvas.getContext('2d');
+
+    // Размер клетки и размеры игрового поля
+    const cellSize = 20;
+    const boardWidth = 10;
+    const boardHeight = 20;
+
+    // Инициализация игрового поля (двумерный массив)
+    let board = Array.from({ length: boardHeight }, () => Array(boardWidth).fill(0));
+
+    // Определяем фигуры и их цвета
+    const tetrominoes = {
+      'I': {
+        shape: [
+          [0, 0, 0, 0],
+          [1, 1, 1, 1],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0]
+        ],
+        color: 'cyan'
+      },
+      'J': {
+        shape: [
+          [2, 0, 0],
+          [2, 2, 2],
+          [0, 0, 0]
+        ],
+        color: 'blue'
+      },
+      'L': {
+        shape: [
+          [0, 0, 3],
+          [3, 3, 3],
+          [0, 0, 0]
+        ],
+        color: 'orange'
+      },
+      'O': {
+        shape: [
+          [4, 4],
+          [4, 4]
+        ],
+        color: 'yellow'
+      },
+      'S': {
+        shape: [
+          [0, 5, 5],
+          [5, 5, 0],
+          [0, 0, 0]
+        ],
+        color: 'green'
+      },
+      'T': {
+        shape: [
+          [0, 6, 0],
+          [6, 6, 6],
+          [0, 0, 0]
+        ],
+        color: 'purple'
+      },
+      'Z': {
+        shape: [
+          [7, 7, 0],
+          [0, 7, 7],
+          [0, 0, 0]
+        ],
+        color: 'red'
+      }
+    };
+
+    // Функция создания фигуры по типу (с размещением в центре по горизонтали)
+    function createPiece(type) {
+      const matrix = tetrominoes[type].shape;
+      return {
+        x: Math.floor((boardWidth - matrix[0].length) / 2),
+        y: 0,
+        shape: matrix,
+        color: tetrominoes[type].color
+      };
+    }
+
+    // Выбор случайной фигуры
+    function randomPiece() {
+      const types = Object.keys(tetrominoes);
+      const randType = types[Math.floor(Math.random() * types.length)];
+      return createPiece(randType);
+    }
+
+    // Проверка столкновения фигуры с границами поля или уже закреплёнными блоками
+    function collides(piece, offsetX, offsetY, shape) {
+      shape = shape || piece.shape;
+      for (let y = 0; y < shape.length; y++) {
+        for (let x = 0; x < shape[y].length; x++) {
+          if (shape[y][x] !== 0) {
+            const newX = piece.x + x + offsetX;
+            const newY = piece.y + y + offsetY;
+            if (newX < 0 || newX >= boardWidth || newY >= boardHeight) {
+              return true;
+            }
+            // Если newY отрицательно — фигура ещё не полностью вышла на поле, пропускаем проверку
+            if (newY >= 0 && board[newY][newX] !== 0) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    // Слияние фигуры с игровым полем (фиксируем фигуру)
+    function merge(piece, board) {
+      piece.shape.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value !== 0) {
+            if (piece.y + y >= 0) {
+              board[piece.y + y][piece.x + x] = piece.color;
+            }
+          }
+        });
+      });
+    }
+
+    // Очистка заполненных строк
+    function clearLines() {
+      for (let y = boardHeight - 1; y >= 0; y--) {
+        if (board[y].every(cell => cell !== 0)) {
+          board.splice(y, 1);
+          board.unshift(new Array(boardWidth).fill(0));
+          y++; // Повторно проверяем строку, так как сверху сдвинулись новые данные
+        }
+      }
+    }
+
+    // Поворот матрицы (фигуры) по часовой стрелке
+    function rotate(matrix) {
+      const N = matrix.length;
+      const result = [];
+      for (let x = 0; x < matrix[0].length; x++) {
+        result[x] = [];
+        for (let y = N - 1; y >= 0; y--) {
+          result[x].push(matrix[y][x]);
+        }
+      }
+      return result;
+    }
+
+    // Переменные для автоматического падения фигуры
+    let dropCounter = 0;
+    const dropInterval = 1000; // интервал в миллисекундах
+    let lastTime = 0;
+
+    // Текущая падающая фигура
+    let currentPiece = randomPiece();
+
+    // Функция, отвечающая за падение фигуры
+    function drop() {
+      if (!collides(currentPiece, 0, 1)) {
+        currentPiece.y++;
+      } else {
+        merge(currentPiece, board);
+        clearLines();
+        currentPiece = randomPiece();
+        // Если новая фигура сразу столкнулась – игра окончена
+        if (collides(currentPiece, 0, 0)) {
+          alert("Игра окончена!");
+          board = Array.from({ length: boardHeight }, () => Array(boardWidth).fill(0));
+        }
+      }
+      dropCounter = 0;
+    }
+
+    // Основной цикл обновления игры
+    function update(time = 0) {
+      const deltaTime = time - lastTime;
+      lastTime = time;
+      dropCounter += deltaTime;
+      if (dropCounter > dropInterval) {
+        drop();
+      }
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    // Функция отрисовки всей сцены: игрового поля и текущей фигуры
+    function draw() {
+      // Очистка канваса
+      context.fillStyle = "#111";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      // Рисуем закреплённые блоки поля
+      drawMatrix(board, { x: 0, y: 0 });
+      // Рисуем текущую фигуру
+      drawMatrix(currentPiece.shape, { x: currentPiece.x, y: currentPiece.y }, currentPiece.color);
+    }
+
+    // Функция отрисовки матрицы (либо поля, либо фигуры)
+    function drawMatrix(matrix, offset, pieceColor) {
+      matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value !== 0) {
+            context.fillStyle = pieceColor || value;
+            // Отступ 1 пиксель для визуального разделения клеток
+            context.fillRect(
+              (x + offset.x) * cellSize,
+              (y + offset.y) * cellSize,
+              cellSize - 1,
+              cellSize - 1
+            );
+          }
+        });
+      });
+    }
+
+    // Обработка нажатий клавиш (стрелки)
+    document.addEventListener('keydown', event => {
+      if (event.keyCode === 37) { // Влево
+        if (!collides(currentPiece, -1, 0)) {
+          currentPiece.x--;
+        }
+      } else if (event.keyCode === 39) { // Вправо
+        if (!collides(currentPiece, 1, 0)) {
+          currentPiece.x++;
+        }
+      } else if (event.keyCode === 40) { // Вниз
+        drop();
+      } else if (event.keyCode === 38) { // Вверх — поворот
+        const rotated = rotate(currentPiece.shape);
+        if (!collides(currentPiece, 0, 0, rotated)) {
+          currentPiece.shape = rotated;
+        }
+      }
+    });
+
+    // Запуск основного цикла игры
+    update();
+  </script>
 </body>
 </html>
