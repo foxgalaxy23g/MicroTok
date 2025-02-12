@@ -13,6 +13,67 @@ include("elements/php/main/cursor.php");
 
 $project_decsi = "Social media made by no name furry just for fun";
 
+// Функция для проверки существования email через SMTP
+function isEmailDeliverable($email) {
+    // Извлекаем домен из email
+    $domain = substr(strrchr($email, "@"), 1);
+    
+    // Проверяем наличие MX-записей
+    if (!checkdnsrr($domain, "MX")) {
+         return false;
+    }
+    
+    // Получаем список MX-хостов
+    $mxhosts = [];
+    getmxrr($domain, $mxhosts);
+    if (empty($mxhosts)) {
+         return false;
+    }
+    
+    $timeout = 10; // Таймаут подключения в секундах
+
+    // Перебираем MX-серверы
+    foreach ($mxhosts as $mxhost) {
+         // Пытаемся установить соединение по порту 25
+         $connection = @fsockopen($mxhost, 25, $errno, $errstr, $timeout);
+         if ($connection) {
+             // Читаем ответ сервера (ожидаем код 220)
+             $response = fgets($connection, 1024);
+             if (substr($response, 0, 3) != '220') {
+                  fclose($connection);
+                  continue;
+             }
+             // Отправляем команду HELO
+             fputs($connection, "HELO " . $domain . "\r\n");
+             $response = fgets($connection, 1024);
+             if (substr($response, 0, 3) != '250') {
+                  fclose($connection);
+                  continue;
+             }
+             // Отправляем MAIL FROM (можно указать любой корректный email с вашего домена)
+             fputs($connection, "MAIL FROM:<noreply@" . $domain . ">\r\n");
+             $response = fgets($connection, 1024);
+             if (substr($response, 0, 3) != '250') {
+                  fclose($connection);
+                  continue;
+             }
+             // Отправляем RCPT TO для проверяемого email
+             fputs($connection, "RCPT TO:<" . $email . ">\r\n");
+             $response = fgets($connection, 1024);
+             $code = substr($response, 0, 3);
+             // Завершаем соединение
+             fputs($connection, "QUIT\r\n");
+             fclose($connection);
+             
+             // Если получен код 250 или 251 – считаем, что email существует
+             if ($code == '250' || $code == '251') {
+                  return true;
+             }
+         }
+    }
+    return false;
+}
+
 function sendVerificationCode($email, $code, $ip_address, $user_agent, $project_name) {
     $mail = new PHPMailer(true);
     global $mail_smtp, $mail_login, $mail_pass, $mail_port;
@@ -157,25 +218,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
         // 1. Проверка синтаксиса с помощью egulias/email-validator
         $validator = new EmailValidator();
         if (!$validator->isValid($email, new RFCValidation())) {
-            $register_error = "Неверный формат email.";
+            $register_error = "Invalid email format.";
         }
+        // Проверка email
         else {
-            // 2. Проверка домена на наличие MX-записей
-            $domain = substr(strrchr($email, "@"), 1);
-            if (!checkdnsrr($domain, 'MX')) {
-                $register_error = "Домен email не имеет MX-записей или не существует.";
+            // 1. Проверка синтаксиса с помощью egulias/email-validator
+            $validator = new EmailValidator();
+            if (!$validator->isValid($email, new RFCValidation())) {
+                $register_error = "Invalid email format.";
             }
             else {
-                // 3. Проверка на существование email в базе данных
-                $emailCheckSql = "SELECT id FROM users WHERE email = ?";
-                $emailStmt = $conn->prepare($emailCheckSql);
-                $emailStmt->bind_param('s', $email);
-                $emailStmt->execute();
-                $emailStmt->store_result();
-                if ($emailStmt->num_rows > 0) {
-                    $register_error = "The specified email is already in use.";
+                // 2. Проверка домена на наличие MX-записей
+                $domain = substr(strrchr($email, "@"), 1);
+                if (!checkdnsrr($domain, 'MX')) {
+                    $register_error = "There are no MX records for this email domain.";
                 }
-                $emailStmt->close();
+                // 2.5 Дополнительная проверка существования email через SMTP
+                else if (!isEmailDeliverable($email)) {
+                    $register_error = "This email does not exist.";
+                }
+                else {
+                    // 3. Проверка на существование email в базе данных
+                    $emailCheckSql = "SELECT id FROM users WHERE email = ?";
+                    $emailStmt = $conn->prepare($emailCheckSql);
+                    $emailStmt->bind_param('s', $email);
+                    $emailStmt->execute();
+                    $emailStmt->store_result();
+                    if ($emailStmt->num_rows > 0) {
+                        $register_error = "The specified email is already in use.";
+                    }
+                    $emailStmt->close();
+                }
             }
         }
     }
