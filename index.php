@@ -608,5 +608,6 @@ if (isset($_COOKIE['auth_token'])) {
             }, 2000); // Задержка перед началом анимации (2 секунды)
         });
     </script>
+    <script src="elements/js/safe.js"></script>
 </body>
 </html>

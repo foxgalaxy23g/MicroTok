@@ -29,7 +29,7 @@
     document.addEventListener('keydown', (e) => {
             if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
                 e.preventDefault();
-                alert("Инструменты разработчика запрещены!");
+                alert("Developer Tools not allowed!");
             }
 
             const forbiddenCharacters = /[{}:><?"|\[\];/~]/;
