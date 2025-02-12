@@ -82,7 +82,7 @@ if (!empty($videos)) {
   </script>
 </head>
 <body>
-  <?php include("elements/php/blocks/header.php"); ?>
+  <?php include("elements\php\blocks\headers\header.php"); ?>
   <noscript>
     <meta http-equiv="refresh" content="0; url=/javascript.php">
   </noscript>

@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <meta http-equiv="refresh" content="0; url=/javascript.php">
     </noscript>
     <?php 
-        include("elements/php/blocks/header_old.php"); 
+        include("elements\php\blocks\headers\header_no_finder.php"); 
     ?>
     <h1>Settings</h1>
     

@@ -62,7 +62,7 @@ if ($result->num_rows > 0) {
   <noscript>
     <meta http-equiv="refresh" content="0; url=/javascript.php">
   </noscript>
-<?php include("elements/php/blocks/header.php"); ?>
+<?php include("elements\php\blocks\headers\header.php"); ?>
 
     <div class="profile-page">
         

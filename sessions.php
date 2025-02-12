@@ -64,7 +64,7 @@ $tokens = getUserTokens($conn, $user_id);
     <meta http-equiv="refresh" content="0; url=/javascript.php">
   </noscript>
     <?php 
-        include("elements/php/blocks/header_old.php"); 
+        include("elements\php\blocks\headers\header_no_finder.php"); 
     ?>
     <h2>Manage connected devices</h2>
     <?php if (isset($delete_message)): ?>

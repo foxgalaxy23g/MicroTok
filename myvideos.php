@@ -105,7 +105,7 @@ $result = $stmt->get_result();
 </head>
 <body>
     <div class="header-container">
-        <?php include("elements/php/blocks/header.php"); ?>
+        <?php include("elements\php\blocks\headers\header_no_finder.php");  ?>
     </div>
     <noscript>
         <meta http-equiv="refresh" content="0; url=/javascript.php">
