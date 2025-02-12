@@ -108,14 +108,13 @@
     <div class="search-container">
       <form action="/search.php" method="get">
         <input type="text" name="search" placeholder="Search video..." required>
-        <button type="submit">Search</button>
       </form>
     </div>
 
     <!-- Блок с кнопками -->
     <div class="buttons">
       <a href="make.php">
-        <i class="fas fa-video"></i> <span>Make video</span>
+        <i class="fas fa-video" style="font-size: 35px;"></i>
       </a>
       
       <!-- Контейнер меню пользователя -->
