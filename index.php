@@ -469,10 +469,22 @@ if (isset($_COOKIE['auth_token'])) {
     <!-- Экран загрузки -->
     <div id="loading-screen" style="background-color: #333;">
         <div id="logo-container" style="margin-bottom: 30%;">
-            <img id="logo" style="margin-bottom: -40vh;" src="elements/embeded/me/logo.png" alt="Logo">
-        </div>
-        <p id="by-text" style="color: rgb(255, 255, 255); font-weight: bold; font-size: 1.5em;">By <?php echo($company_developer); ?></p>
+            <?php
+            // Проверка, если сегодня 1 апреля
+            if (date('m-d') === '04-01') {
+                // Показываем шуточный логотип
+                echo '<img id="logo" style="margin-bottom: -40vh;" src="elements/embeded/notme/vk.png" alt="April Fool\'s Logo">';
+                echo '</div>';
+                echo '<p id="by-text" style="color: rgb(255, 255, 255); font-weight: bold; font-size: 1.5em;">April 1 – Trust no one.</p>';
+            } else {
+                // Обычный логотип
+                echo '<img id="logo" style="margin-bottom: -40vh;" src="elements/embeded/me/logo.png" alt="Logo">';
+                echo '</div>';
+                echo '<p id="by-text" style="color: rgb(255, 255, 255); font-weight: bold; font-size: 1.5em;">By ' . $company_developer . '</p>';
+            }
+            ?>
     </div>
+
 
     <div id="main-content" style="display:none;">
         <div class="container">
