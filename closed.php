@@ -29,16 +29,16 @@ if($server_open_now == "1")
     <div class="contacts">
         <p>If you have any questions, you can contact us:</p>
         <a href="<?php echo($x_admin); ?>" class="contact-link" target="_blank">
-            <img src="elements/embeded/notme/x.png" alt="Twitter" style="border-radius: 10px;">
+            <img src="elements/embeded/notme/x.png" alt="Twitter" style="border-radius: 10px; filter: none;">
         </a>
         <a href="<?php echo($tg_admin); ?>" class="contact-link" target="_blank">
-            <img src="elements/embeded/notme/tg.png" alt="Telegram" style="border-radius: 10px;">
+            <img src="elements/embeded/notme/tg.png" alt="Telegram" style="border-radius: 10px; filter: none;">
         </a>
         <a href="<?php echo($yt_admin); ?>" class="contact-link" target="_blank">
-            <img src="elements/embeded/notme/yt.png" alt="yt" style="border-radius: 10px;">
+            <img src="elements/embeded/notme/yt.png" alt="yt" style="border-radius: 10px; filter: none;">
         </a>
         <a href="<?php echo($gh_admin); ?>" class="contact-link" target="_blank">
-            <img src="elements/embeded/notme/gh.png" alt="gh" style="border-radius: 10px;">
+            <img src="elements/embeded/notme/gh.png" alt="gh" style="border-radius: 10px; filter: none;">
         </a>
     </div>
 </body>
