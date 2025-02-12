@@ -1,7 +1,11 @@
 <?php
 include("elements/php/main/db.php");
 include("elements/php/main/verify.php");
-require_once 'elements/php/main/aws.php';
+
+// Если AWS включён, подключаем библиотеку
+if($aws_s3_enabled == 1){
+    require_once 'elements/php/main/aws.php';
+}
 
 // Получаем список доступных тем
 $sql = "SELECT id, name FROM themes";
@@ -72,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
     } else {
         // Генерация превью из первого кадра сжатого видео
         $coverImagePath = tempnam(sys_get_temp_dir(), 'preview_') . '.png';
-        // Извлекаем первый кадр; можно задать смещение времени, например, "-ss 00:00:00.000"
+        // Извлекаем первый кадр (при необходимости можно задать смещение, например, "-ss 00:00:00.000")
         $ffmpegPreviewCommand = "C:\\ffmpeg\\bin\\ffmpeg.exe -i " . escapeshellarg($compressedVideoFile) . " -vframes 1 " . escapeshellarg($coverImagePath) . " 2>&1";
         exec($ffmpegPreviewCommand, $ffmpegPreviewOutput, $ffmpegPreviewReturnVar);
         if ($ffmpegPreviewReturnVar !== 0) {
@@ -83,41 +87,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
     }
     // --- Конец обработки обложки ---
 
-    // Генерируем уникальное имя для видео в бакете S3
-    $videoKey = 'videos/' . uniqid() . ".mp4";
+    // --- Загрузка файлов ---
+    if ($aws_s3_enabled == 1) {
+        // Загрузка на AWS S3
 
-    try {
-        $result = $s3Client->putObject([
-            'Bucket'      => S3_BUCKET,
-            'Key'         => $videoKey,
-            'SourceFile'  => $compressedVideoFile,
-            'ACL'         => 'public-read', // файл будет общедоступным
-            'ContentType' => 'video/mp4',
-        ]);
-    } catch (AwsException $e) {
-        die("Ошибка загрузки видео в S3: " . $e->getMessage());
+        // Генерируем уникальное имя для видео в бакете S3
+        $videoKey = 'videos/' . uniqid() . ".mp4";
+
+        try {
+            $result = $s3Client->putObject([
+                'Bucket'      => S3_BUCKET,
+                'Key'         => $videoKey,
+                'SourceFile'  => $compressedVideoFile,
+                'ACL'         => 'public-read', // файл будет общедоступным
+                'ContentType' => 'video/mp4',
+            ]);
+        } catch (AwsException $e) {
+            die("Ошибка загрузки видео в S3: " . $e->getMessage());
+        }
+
+        // Получаем URL загруженного видео
+        $videoUrl = $result->get('ObjectURL');
+
+        // Генерируем уникальное имя для обложки в бакете S3
+        $coverImageKey = 'covers/' . uniqid() . '.' . $coverImageExtension;
+
+        try {
+            $result = $s3Client->putObject([
+                'Bucket'      => S3_BUCKET,
+                'Key'         => $coverImageKey,
+                'SourceFile'  => $coverImagePath,
+                'ACL'         => 'public-read',
+                'ContentType' => $coverImageContentType,
+            ]);
+        } catch (AwsException $e) {
+            die("Ошибка загрузки обложки в S3: " . $e->getMessage());
+        }
+
+        // Получаем URL загруженной обложки
+        $coverImageUrl = $result->get('ObjectURL');
+    } else {
+        // Локальный режим: сохраняем файлы на сервере в папке uploads
+
+        // Определяем директории для загрузки
+        $uploadsDir = __DIR__ . '/uploads';
+        $videosDir = $uploadsDir . '/videos';
+        $coversDir = $uploadsDir . '/covers';
+
+        // Создаем директории, если они не существуют
+        if (!is_dir($videosDir)) {
+            mkdir($videosDir, 0777, true);
+        }
+        if (!is_dir($coversDir)) {
+            mkdir($coversDir, 0777, true);
+        }
+
+        // Генерируем уникальные имена файлов
+        $videoFileName = uniqid() . ".mp4";
+        $coverFileName = uniqid() . '.' . $coverImageExtension;
+
+        $videoFilePath = $videosDir . '/' . $videoFileName;
+        $coverFilePath = $coversDir . '/' . $coverFileName;
+
+        // Перемещаем сжатое видео в локальную директорию
+        if (!rename($compressedVideoFile, $videoFilePath)) {
+            die("Ошибка сохранения видео на сервере.");
+        }
+
+        // Перемещаем обложку в локальную директорию
+        // Если обложка была загружена пользователем, используем move_uploaded_file
+        if (isset($_FILES['cover_image']) && !empty($_FILES['cover_image']['name'])) {
+            if (!move_uploaded_file($coverImagePath, $coverFilePath)) {
+                die("Ошибка сохранения обложки на сервере.");
+            }
+        } else {
+            if (!rename($coverImagePath, $coverFilePath)) {
+                die("Ошибка сохранения обложки на сервере.");
+            }
+        }
+
+        // Формируем URL для локально сохраненных файлов (относительно корня сайта)
+        $videoUrl = '/uploads/videos/' . $videoFileName;
+        $coverImageUrl = '/uploads/covers/' . $coverFileName;
     }
-
-    // Получаем URL загруженного видео
-    $videoUrl = $result->get('ObjectURL');
-
-    // Генерируем уникальное имя для обложки в бакете S3
-    $coverImageKey = 'covers/' . uniqid() . '.' . $coverImageExtension;
-
-    try {
-        $result = $s3Client->putObject([
-            'Bucket'      => S3_BUCKET,
-            'Key'         => $coverImageKey,
-            'SourceFile'  => $coverImagePath,
-            'ACL'         => 'public-read',
-            'ContentType' => $coverImageContentType,
-        ]);
-    } catch (AwsException $e) {
-        die("Ошибка загрузки обложки в S3: " . $e->getMessage());
-    }
-
-    // Получаем URL загруженной обложки
-    $coverImageUrl = $result->get('ObjectURL');
+    // --- Конец загрузки файлов ---
 
     // Сохраняем данные о видео в базе данных
     $sql = "INSERT INTO videos (user_id, path, description, upload_time, cover_image_path, theme_id) VALUES (?, ?, ?, NOW(), ?, ?)";
@@ -127,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
     $uploadedVideoId = $conn->insert_id;
     $stmt->close();
 
-    // Удаляем временные файлы
+    // Удаляем временные файлы, если они ещё существуют
     if (file_exists($compressedVideoFile)) {
         unlink($compressedVideoFile);
     }

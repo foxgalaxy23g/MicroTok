@@ -1,6 +1,12 @@
 <?php
 include("elements/php/main/db.php");
 include("elements/php/main/verify.php");
+
+// Если включён AWS, подключаем AWS S3 (конфигурация и инициализация клиента)
+if ($aws_s3_enabled == 1) {
+    require_once 'elements/php/main/aws.php';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_POST['description'])) {
     $video = $_FILES['video'];
     $description = trim($_POST['description']);
@@ -17,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
         die("File size exceeds 50 MB.");
     }
 
+    // Проверяем, что пользователь не превысил дневной лимит (5 видео в сутки)
     $sql = "SELECT COUNT(*) FROM videos WHERE user_id = ? AND DATE(upload_time) = CURDATE()";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('i', $user_id);
@@ -29,24 +36,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['video']) && isset($_
         die("You can upload up to 5 videos per day.");
     }
 
-    $uploadDir = 'uploads/videos/';
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
+    // Загрузка видео: если AWS включён – загружаем в S3, иначе сохраняем локально
+    if ($aws_s3_enabled == 1) {
+        // Генерируем уникальный ключ в бакете S3 (например, videos/uniqid.mp4)
+        $s3Key = 'videos/' . uniqid() . ".mp4";
+        try {
+            $result = $s3Client->putObject([
+                'Bucket'      => S3_BUCKET,
+                'Key'         => $s3Key,
+                'SourceFile'  => $video['tmp_name'],
+                'ACL'         => 'public-read',
+                'ContentType' => $video['type'],
+            ]);
+            // Получаем публичный URL загруженного видео
+            $videoUrl = $result->get('ObjectURL');
+        } catch (Aws\Exception\AwsException $e) {
+            die("Error uploading video to S3: " . $e->getMessage());
+        }
+    } else {
+        // Локальное хранение
+        $uploadDir = 'uploads/videos/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        $videoUrl = $uploadDir . uniqid() . ".mp4";
+        if (!move_uploaded_file($video['tmp_name'], $videoUrl)) {
+            die("File upload error.");
+        }
     }
 
-    $filePath = $uploadDir . uniqid() . ".mp4";
-    if (move_uploaded_file($video['tmp_name'], $filePath)) {
-        $sql = "INSERT INTO videos (user_id, path, description, upload_time) VALUES (?, ?, ?, NOW())";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('iss', $user_id, $filePath, $description);
-        $stmt->execute();
-        $stmt->close();
-        echo "Video uploaded successfully.";
-    } else {
-        echo "File upload error.";
-    }
+    // Сохраняем информацию о видео в базе данных (столбец path хранит URL или путь к файлу)
+    $sql = "INSERT INTO videos (user_id, path, description, upload_time) VALUES (?, ?, ?, NOW())";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param('iss', $user_id, $videoUrl, $description);
+    $stmt->execute();
+    $stmt->close();
+
+    echo "Video uploaded successfully.";
 }
 
+// Обновление описания видео
 if (isset($_POST['update_description']) && isset($_POST['video_id']) && isset($_POST['new_description'])) {
     $video_id = $_POST['video_id'];
     $new_description = trim($_POST['new_description']);
@@ -60,6 +89,7 @@ if (isset($_POST['update_description']) && isset($_POST['video_id']) && isset($_
     echo "Description updated successfully.";
 }
 
+// Удаление видео
 if (isset($_GET['delete_video_id'])) {
     $video_id = $_GET['delete_video_id'];
 
@@ -71,7 +101,27 @@ if (isset($_GET['delete_video_id'])) {
     $stmt->fetch();
     $stmt->close();
 
-    if ($video_path && unlink($video_path)) {
+    if ($video_path) {
+        if ($aws_s3_enabled == 1) {
+            // При загрузке в S3 мы получили URL вида "https://bucket-name.s3.amazonaws.com/videos/unique.mp4".
+            // Извлекаем S3-ключ из URL.
+            $parsedUrl = parse_url($video_path, PHP_URL_PATH); // Например, "/videos/unique.mp4"
+            $s3Key = ltrim($parsedUrl, '/'); // Убираем начальный слеш
+            try {
+                $s3Client->deleteObject([
+                    'Bucket' => S3_BUCKET,
+                    'Key'    => $s3Key,
+                ]);
+            } catch (Aws\Exception\AwsException $e) {
+                echo "Error deleting video from S3: " . $e->getMessage();
+            }
+        } else {
+            if (!unlink($video_path)) {
+                echo "Error deleting video file.";
+            }
+        }
+
+        // Удаляем запись из базы данных
         $sql = "DELETE FROM videos WHERE id = ? AND user_id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param('ii', $video_id, $user_id);
@@ -84,6 +134,7 @@ if (isset($_GET['delete_video_id'])) {
     }
 }
 
+// Получение списка видео для отображения
 $sql = "SELECT v.id, v.cover_image_path, v.description,
            (SELECT COUNT(*) FROM video_views WHERE video_id = v.id) AS views
         FROM videos v
@@ -105,7 +156,7 @@ $result = $stmt->get_result();
 </head>
 <body>
     <div class="header-container">
-        <?php include("elements\php\blocks\headers\header_no_finder.php");  ?>
+        <?php include("elements/php/blocks/headers/header_no_finder.php");  ?>
     </div>
     <noscript>
         <meta http-equiv="refresh" content="0; url=/javascript.php">
@@ -154,13 +205,13 @@ $result = $stmt->get_result();
         </table>
         <!-- Дополнительные отступы (при необходимости) -->
     </div>
-        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
-        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
-        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
-        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
-        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
-        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
-        <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
-    </div>
+    <!-- Пустые заголовки для отступов -->
+    <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
+    <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
+    <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
+    <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
+    <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
+    <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
+    <h1 style="color: rgba(255, 255, 255, 0);">^</h1>
 </body>
 </html>

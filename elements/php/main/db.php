@@ -13,7 +13,8 @@ $mail_port = '';
 
 // Other settings
 $project_name = "MicroTok";
-$registration_open = "1";
+$registration_open = 1;
+$aws_s3_enabled = 0;
 
 // Contacts (Change it!)
 $x_admin = "https://x.com/foxgalaxy23";

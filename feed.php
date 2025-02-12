@@ -51,7 +51,7 @@ if ($video_id && in_array($video_id, $ids)) {
         header("Location: ?id=" . $random_id);
         exit;
     } else {
-        include("elements/php/blocks/header.php");
+        include("elements/php/blocks/headers/header.php");
         include("elements/php/blocks/first.php");
         exit;
     }

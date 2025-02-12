@@ -2,8 +2,10 @@
 require_once 'elements/php/main/db.php'; 
 include("elements/php/main/verify.php");
 
-// Подключаем AWS S3 (конфигурация и инициализация S3 клиента)
-require_once 'elements/php/main/aws.php';
+// Подключаем AWS S3 (конфигурация и инициализация S3 клиента), если включён
+if($aws_s3_enabled == 1){
+    require_once 'elements/php/main/aws.php';
+}
 
 // Получаем данные пользователя
 $query = "SELECT * FROM users WHERE id = ?";
@@ -55,36 +57,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Обновление аватара через AWS S3
+    // Обновление аватара
     if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == UPLOAD_ERR_OK) {
-        // Генерируем уникальное имя для файла
-        $file_extension = pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION);
-        $unique_name = generateRandomFileName() . '.' . $file_extension;
-        $s3Key = 'avatars/' . $unique_name;
-        
-        try {
-            $result = $s3Client->putObject([
-                'Bucket'      => S3_BUCKET,
-                'Key'         => $s3Key,
-                'SourceFile'  => $_FILES['avatar']['tmp_name'],
-                'ACL'         => 'public-read', // делаем файл общедоступным, если это требуется
-                'ContentType' => $_FILES['avatar']['type'],
-            ]);
+        if ($aws_s3_enabled == 1) {
+            // Загрузка аватара на AWS S3
+            $file_extension = pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION);
+            $unique_name = generateRandomFileName() . '.' . $file_extension;
+            $s3Key = 'avatars/' . $unique_name;
             
-            // Получаем URL загруженного файла
-            $avatarUrl = $result->get('ObjectURL');
-            
-            $update_avatar_query = "UPDATE users SET avatar = ? WHERE id = ?";
-            $stmt = $conn->prepare($update_avatar_query);
-            $stmt->bind_param('si', $avatarUrl, $user_id);
-            if ($stmt->execute()) {
-                echo "Аватар обновлен.<br>";
-            } else {
-                echo "Ошибка обновления аватара.<br>";
+            try {
+                $result = $s3Client->putObject([
+                    'Bucket'      => S3_BUCKET,
+                    'Key'         => $s3Key,
+                    'SourceFile'  => $_FILES['avatar']['tmp_name'],
+                    'ACL'         => 'public-read',
+                    'ContentType' => $_FILES['avatar']['type'],
+                ]);
+                
+                // Получаем URL загруженного файла
+                $avatarUrl = $result->get('ObjectURL');
+                
+                $update_avatar_query = "UPDATE users SET avatar = ? WHERE id = ?";
+                $stmt = $conn->prepare($update_avatar_query);
+                $stmt->bind_param('si', $avatarUrl, $user_id);
+                if ($stmt->execute()) {
+                    echo "Аватар обновлен.<br>";
+                } else {
+                    echo "Ошибка обновления аватара.<br>";
+                }
+                $stmt->close();
+            } catch (AwsException $e) {
+                echo "Ошибка загрузки аватара в S3: " . $e->getMessage() . "<br>";
             }
-            $stmt->close();
-        } catch (AwsException $e) {
-            echo "Ошибка загрузки аватара в S3: " . $e->getMessage() . "<br>";
+        } else {
+            // Локальный режим: сохраняем аватар в папке uploads/avatars
+            $uploadsDir = __DIR__ . '/uploads';
+            $avatarsDir = $uploadsDir . '/avatars';
+            if (!is_dir($avatarsDir)) {
+                mkdir($avatarsDir, 0777, true);
+            }
+            $file_extension = pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION);
+            $unique_name = generateRandomFileName() . '.' . $file_extension;
+            $avatarFilePath = $avatarsDir . '/' . $unique_name;
+            
+            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $avatarFilePath)) {
+                // Формируем URL для доступа к файлу относительно корня сайта
+                $avatarUrl = '/uploads/avatars/' . $unique_name;
+                $update_avatar_query = "UPDATE users SET avatar = ? WHERE id = ?";
+                $stmt = $conn->prepare($update_avatar_query);
+                $stmt->bind_param('si', $avatarUrl, $user_id);
+                if ($stmt->execute()) {
+                    echo "Аватар обновлен.<br>";
+                } else {
+                    echo "Ошибка обновления аватара.<br>";
+                }
+                $stmt->close();
+            } else {
+                echo "Ошибка сохранения аватара на сервере.<br>";
+            }
         }
     }
     
@@ -110,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <meta http-equiv="refresh" content="0; url=/javascript.php">
     </noscript>
     <?php 
-        include("elements\php\blocks\headers\header_no_finder.php"); 
+        include("elements/php/blocks/headers/header_no_finder.php"); 
     ?>
     <h1>Settings</h1>
     
@@ -153,19 +183,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h2>Our contacts</h2>
         <div style="display: flex;">
             <div>
-                <a href="<?php echo($x_admin) ?>"><img class="hawaii" src="elements/embeded/notme/x.png" alt="X"></a>
+                <a href="<?= $x_admin ?>"><img class="hawaii" src="elements/embeded/notme/x.png" alt="X"></a>
                 <p style="text-align: center;">X</p>
             </div>
             <div>
-                <a href="<?php echo($tg_admin) ?>"><img class="hawaii" src="elements/embeded/notme/tg.png" alt="tg"></a>
+                <a href="<?= $tg_admin ?>"><img class="hawaii" src="elements/embeded/notme/tg.png" alt="tg"></a>
                 <p style="text-align: center;">Telegram</p>
             </div>
             <div>
-                <a href="<?php echo($yt_admin) ?>"><img class="hawaii" src="elements/embeded/notme/yt.png" alt="yt"></a>
+                <a href="<?= $yt_admin ?>"><img class="hawaii" src="elements/embeded/notme/yt.png" alt="yt"></a>
                 <p style="text-align: center;">YouTube</p>
             </div>
             <div>
-                <a href="<?php echo($gh_admin) ?>"><img class="hawaii" src="elements/embeded/notme/gh.png" alt="gh"></a>
+                <a href="<?= $gh_admin ?>"><img class="hawaii" src="elements/embeded/notme/gh.png" alt="gh"></a>
                 <p style="text-align: center;">GitHub</p>
             </div>
         </div>
