@@ -52,9 +52,7 @@ if ($video_id && in_array($video_id, $ids)) {
         exit;
     } else {
         include("elements/php/blocks/header.php");
-        echo "<h1>" . htmlentities($project_name) . " has no video at all</h1>";
-        echo "<p>But you can publish the video first on this platform!</p>";
-        echo "<a href='make.php'>upload first video</a>";
+        include("elements/php/blocks/first.php");
         exit;
     }
 }
@@ -155,7 +153,6 @@ if ($result->num_rows > 0) {
   echo "<p>Видео не найдено.</p>";
   exit;
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="ru">
